@@ -1,0 +1,16 @@
+// Root project – convenience wrapper for building all microservices together.
+// Each microservice is independently deployable from its own directory.
+//
+// Build all:        ./gradlew build
+// Run a service:    ./gradlew :user-service:bootRun --args='--spring.profiles.active=local'
+// Independent run:  cd user-service && gradle bootRun --args='--spring.profiles.active=local'
+
+plugins {
+    id 'org.springframework.boot' version '3.5.7' apply false
+    id 'io.spring.dependency-management' version '1.1.7' apply false
+}
+
+allprojects {
+    group = 'com.project.emprendia'
+    version = '0.0.1-SNAPSHOT'
+}

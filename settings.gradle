@@ -1,0 +1,6 @@
+rootProject.name = 'emprendia'
+
+include 'shared-service'
+include 'user-service'
+include 'entrepreneurship-service'
+include 'event-service'
