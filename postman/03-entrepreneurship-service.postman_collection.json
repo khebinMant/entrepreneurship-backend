@@ -1,0 +1,314 @@
+{
+  "info": {
+    "_postman_id": "00000003-entrepreneurship-service-0004",
+    "name": "03 – Entrepreneurship Service (Puerto 8082)",
+    "description": "Gestión de emprendimientos en la plataforma Emprendia.\n\nTodos los endpoints requieren JWT válido.\n\nBase URL: {{entrepreneurship_url}} = http://localhost:8082\n\nCampos del body (EntrepreneurshipRequest):\n- userId (Long, requerido): ID del dueño (tabla app_user)\n- categoryId (Long, requerido): ID del CatalogueValue con código de categoría\n- name (String, max 150, requerido): Nombre del emprendimiento\n- description (String, opcional): Descripción\n- logoUrl (String, opcional): URL del logo\n- isPhysical (Boolean, requerido): Tiene presencia física\n- isDigital (Boolean, requerido): Opera en forma digital",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const token = pm.environment.get('access_token');",
+          "if (!token) {",
+          "    const keycloakUrl = pm.environment.get('keycloak_url');",
+          "    const realm      = pm.environment.get('keycloak_realm');",
+          "    const clientId   = pm.environment.get('keycloak_client_id');",
+          "    const username   = pm.environment.get('keycloak_username');",
+          "    const password   = pm.environment.get('keycloak_password');",
+          "    pm.sendRequest({",
+          "        url: `${keycloakUrl}/realms/${realm}/protocol/openid-connect/token`,",
+          "        method: 'POST',",
+          "        header: { 'Content-Type': 'application/x-www-form-urlencoded' },",
+          "        body: {",
+          "            mode: 'urlencoded',",
+          "            urlencoded: [",
+          "                { key: 'grant_type', value: 'password' },",
+          "                { key: 'client_id',  value: clientId  },",
+          "                { key: 'username',   value: username  },",
+          "                { key: 'password',   value: password  }",
+          "            ]",
+          "        }",
+          "    }, (err, res) => {",
+          "        if (!err && res.code === 200) {",
+          "            pm.environment.set('access_token', res.json().access_token);",
+          "            console.log('🔑 Token auto-obtenido para Entrepreneurship Service');",
+          "        } else {",
+          "            console.error('❌ No se pudo obtener el token. Ejecuta primero 00-Auth-Keycloak > Login.');",
+          "        }",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Entrepreneurships",
+      "item": [
+        {
+          "name": "GET Listar todos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurships",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurships"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 o 404', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurships/1",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurships", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Por usuario (userId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurships/user/1",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurships", "user", "1"]
+            },
+            "description": "Retorna todos los emprendimientos de un usuario. Reemplaza '1' por el userId."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Búsqueda con filtros",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurships/search?name=&categoryId=&isPhysical=&isDigital=",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurships", "search"],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "",
+                  "description": "Filtra por nombre (contiene, case-insensitive)",
+                  "disabled": true
+                },
+                {
+                  "key": "categoryId",
+                  "value": "",
+                  "description": "ID del CatalogueValue de categoría",
+                  "disabled": true
+                },
+                {
+                  "key": "isPhysical",
+                  "value": "true",
+                  "description": "true | false",
+                  "disabled": true
+                },
+                {
+                  "key": "isDigital",
+                  "value": "true",
+                  "description": "true | false",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Todos los parámetros son opcionales. Activa los que necesites en la pestaña Params."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Crear emprendimiento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "pm.test('Tiene id', () => pm.expect(r).to.have.property('id'));",
+                  "if (r.id) pm.environment.set('last_entrepreneurship_id', r.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"categoryId\": 1,\n  \"name\": \"Mi Emprendimiento Tech\",\n  \"description\": \"Descripción del emprendimiento\",\n  \"logoUrl\": null,\n  \"isPhysical\": true,\n  \"isDigital\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurships",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurships"]
+            },
+            "description": "categoryId debe ser un ID válido de catalogue_value con un tipo CATEGORY."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Actualizar emprendimiento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"categoryId\": 1,\n  \"name\": \"Mi Emprendimiento Tech Actualizado\",\n  \"description\": \"Descripción actualizada\",\n  \"logoUrl\": \"https://ejemplo.com/logo.png\",\n  \"isPhysical\": true,\n  \"isDigital\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurships/1",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurships", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Eliminar emprendimiento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurships/1",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurships", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "GET /actuator/health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Status UP', () => pm.expect(pm.response.json().status).to.equal('UP'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/actuator/health",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["actuator", "health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

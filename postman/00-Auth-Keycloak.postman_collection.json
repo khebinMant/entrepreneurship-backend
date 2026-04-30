@@ -1,0 +1,212 @@
+{
+  "info": {
+    "_postman_id": "00000000-auth-keycloak-emprendia-0001",
+    "name": "00 – Auth Keycloak",
+    "description": "Autenticación contra Keycloak. Ejecuta primero 'Login' para guardar el JWT en {{access_token}}. Las demás colecciones usan esa variable automáticamente.\n\n**Prerrequisito Keycloak:**\n- Realm: emprendia\n- Client: emprendia-app\n- Client → Settings → Direct Access Grants: ON\n- Client → Authentication → Client authentication: OFF (public client)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login – Obtener JWT",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "",
+              "pm.test('Login exitoso (200)', () => pm.response.to.have.status(200));",
+              "pm.test('Contiene access_token', () => pm.expect(r.access_token).to.be.a('string').and.not.empty);",
+              "",
+              "if (r.access_token) {",
+              "    pm.environment.set('access_token', r.access_token);",
+              "    pm.environment.set('refresh_token', r.refresh_token);",
+              "",
+              "    // Guardar timestamp de expiración",
+              "    const expiresAt = new Date(Date.now() + r.expires_in * 1000).toISOString();",
+              "    pm.environment.set('token_expires_at', expiresAt);",
+              "",
+              "    console.log('✅ Token guardado. Expira en:', r.expires_in, 'segundos (' + expiresAt + ')');",
+              "} else {",
+              "    console.error('❌ No se recibió access_token. Verifica credenciales y configuración del cliente Keycloak.');",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "grant_type",
+              "value": "password",
+              "description": "Resource Owner Password Credentials flow",
+              "type": "text"
+            },
+            {
+              "key": "client_id",
+              "value": "{{keycloak_client_id}}",
+              "type": "text"
+            },
+            {
+              "key": "username",
+              "value": "{{keycloak_username}}",
+              "type": "text"
+            },
+            {
+              "key": "password",
+              "value": "{{keycloak_password}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{keycloak_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/token",
+          "host": ["{{keycloak_url}}"],
+          "path": ["realms", "{{keycloak_realm}}", "protocol", "openid-connect", "token"]
+        },
+        "description": "Solicita un JWT con usuario y contraseña. El test script guarda el access_token y refresh_token en las variables de entorno automáticamente."
+      },
+      "response": []
+    },
+    {
+      "name": "Refresh Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "",
+              "pm.test('Refresh exitoso (200)', () => pm.response.to.have.status(200));",
+              "",
+              "if (r.access_token) {",
+              "    pm.environment.set('access_token', r.access_token);",
+              "    pm.environment.set('refresh_token', r.refresh_token);",
+              "    const expiresAt = new Date(Date.now() + r.expires_in * 1000).toISOString();",
+              "    pm.environment.set('token_expires_at', expiresAt);",
+              "    console.log('✅ Token renovado. Nuevo expiry:', expiresAt);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "grant_type", "value": "refresh_token", "type": "text" },
+            { "key": "client_id", "value": "{{keycloak_client_id}}", "type": "text" },
+            { "key": "refresh_token", "value": "{{refresh_token}}", "type": "text" }
+          ]
+        },
+        "url": {
+          "raw": "{{keycloak_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/token",
+          "host": ["{{keycloak_url}}"],
+          "path": ["realms", "{{keycloak_realm}}", "protocol", "openid-connect", "token"]
+        },
+        "description": "Renueva el access_token usando el refresh_token guardado. Útil cuando el token expira (por defecto 5 min en Keycloak)."
+      },
+      "response": []
+    },
+    {
+      "name": "Logout (Revocar Token)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Logout exitoso (204)', () => pm.response.to.have.status(204));",
+              "pm.environment.unset('access_token');",
+              "pm.environment.unset('refresh_token');",
+              "pm.environment.unset('token_expires_at');",
+              "console.log('✅ Tokens revocados y eliminados del entorno.');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "client_id", "value": "{{keycloak_client_id}}", "type": "text" },
+            { "key": "refresh_token", "value": "{{refresh_token}}", "type": "text" }
+          ]
+        },
+        "url": {
+          "raw": "{{keycloak_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/logout",
+          "host": ["{{keycloak_url}}"],
+          "path": ["realms", "{{keycloak_realm}}", "protocol", "openid-connect", "logout"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Introspect Token (Validar JWT)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "pm.test('Respuesta 200', () => pm.response.to.have.status(200));",
+              "pm.test('Token activo', () => pm.expect(r.active).to.be.true);",
+              "if (r.active) {",
+              "    console.log('✅ Token válido');",
+              "    console.log('  Usuario:', r.preferred_username);",
+              "    console.log('  Email:', r.email);",
+              "    console.log('  Roles:', JSON.stringify(r.realm_access?.roles));",
+              "    console.log('  Expira:', new Date(r.exp * 1000).toISOString());",
+              "} else {",
+              "    console.warn('⚠️ Token inactivo o expirado');",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "client_id", "value": "{{keycloak_client_id}}", "type": "text" },
+            { "key": "token", "value": "{{access_token}}", "type": "text" }
+          ]
+        },
+        "url": {
+          "raw": "{{keycloak_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/token/introspect",
+          "host": ["{{keycloak_url}}"],
+          "path": ["realms", "{{keycloak_realm}}", "protocol", "openid-connect", "token", "introspect"]
+        },
+        "description": "Muestra el contenido decodificado del JWT: username, email, roles, expiración. Útil para depurar claims."
+      },
+      "response": []
+    }
+  ]
+}

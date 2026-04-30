@@ -113,7 +113,7 @@ Todos los microservicios son **OAuth2 Resource Servers independientes**. Cada se
 ### Flujo de Autenticación
 
 ```
-Frontend (Next.js)
+Frontend (Angular)
      │ POST /login
      ▼
 Keycloak (realm: emprendia)
@@ -274,6 +274,141 @@ En `prod` solo se expone `/actuator/health`.
 | Fase 1 | ✅ Implementado | Cada microservicio valida JWT directamente (zero-trust) |
 | Fase 2 | 🔜 Pendiente | API Gateway centralizado (Spring Cloud Gateway / Kong) |
 | Fase 3 | 🔜 Pendiente | Observability + service mesh + políticas avanzadas |
+
+---
+
+## Postman – Pruebas de API
+
+Las colecciones de Postman están ubicadas en la carpeta `postman/` en la raíz del proyecto.
+
+```
+postman/
+├── Emprendia.postman_environment.json              ← Variables de entorno (URLs, credenciales, token)
+├── 00-Auth-Keycloak.postman_collection.json        ← Autenticación: Login, Refresh, Logout, Introspect
+├── 01-shared-service.postman_collection.json       ← Shared Service: CatalogueTypes + CatalogueValues
+├── 02-user-service.postman_collection.json         ← User Service: CRUD de usuarios
+├── 03-entrepreneurship-service.postman_collection.json  ← Entrepreneurship Service: CRUD de emprendimientos
+└── 04-event-service.postman_collection.json        ← Event Service: CRUD de eventos
+```
+
+### Importación
+
+1. Abrir Postman → **File → Import**
+2. Arrastrar todos los archivos `.json` de la carpeta `postman/`
+3. Seleccionar el environment **"Emprendia – Local"** en la esquina superior derecha de Postman
+
+### Configuración del Environment
+
+Editar las siguientes variables en `Emprendia.postman_environment.json` (o directamente en Postman):
+
+| Variable | Valor por defecto | Descripción |
+|---|---|---|
+| `keycloak_url` | `http://localhost:8080` | URL base de Keycloak |
+| `keycloak_realm` | `emprendia` | Nombre del realm |
+| `keycloak_client_id` | `emprendia-app` | Client ID con Direct Access Grants activado |
+| `keycloak_username` | `tu_usuario` | Usuario de prueba en Keycloak |
+| `keycloak_password` | `tu_password` | Contraseña del usuario |
+| `access_token` | *(auto-relleno)* | JWT – se llenar automáticamente al hacer Login |
+| `shared_url` | `http://localhost:8084` | Base URL del Shared Service |
+| `user_url` | `http://localhost:8081` | Base URL del User Service |
+| `entrepreneurship_url` | `http://localhost:8082` | Base URL del Entrepreneurship Service |
+| `event_url` | `http://localhost:8083` | Base URL del Event Service |
+
+### Flujo de Autenticación
+
+El flujo recomendado para pruebas es el siguiente:
+
+```
+1. Ejecutar: 00-Auth-Keycloak → "Login – Obtener JWT"
+        ↓
+   Se guardan automáticamente en el environment:
+   - access_token  (JWT válido, expira según config Keycloak, por defecto 5 min)
+   - refresh_token (para renovar sin re-ingresar credenciales)
+   - token_expires_at (timestamp ISO-8601 de expiración)
+        ↓
+2. Usar cualquier colección de servicios normalmente
+   (todas envían Authorization: Bearer {{access_token}} automáticamente)
+        ↓
+3. Si el token expira → ejecutar "Refresh Token" o volver a hacer "Login"
+```
+
+> **Auto-fetch:** Si `access_token` está vacío cuando se lanza una petición en cualquiera de las colecciones de servicio, el pre-request script intenta obtener el token automáticamente usando las variables del environment, sin necesidad de ir a la colección de auth.
+
+### Colecciones Disponibles
+
+#### `00 – Auth Keycloak`
+| Request | Descripción |
+|---|---|
+| Login – Obtener JWT | Password grant flow. Guarda `access_token` y `refresh_token` en el environment |
+| Refresh Token | Renueva el `access_token` usando el `refresh_token` vigente |
+| Logout (Revocar Token) | Revoca el token en Keycloak y limpia las variables del environment |
+| Introspect Token (Validar JWT) | Muestra username, email, roles y expiración del token activo |
+
+#### `01 – Shared Service` (`:8084`)
+Los endpoints `GET` de catálogos son **públicos** (no requieren token). Los `POST/PUT/DELETE` requieren `ROLE_ADMIN`.
+
+| Request | Método | Endpoint |
+|---|---|---|
+| Listar tipos de catálogo | `GET` | `/api/v1/catalogue-types` |
+| Obtener tipo por ID | `GET` | `/api/v1/catalogue-types/{id}` |
+| Crear tipo | `POST` | `/api/v1/catalogue-types` |
+| Actualizar tipo | `PUT` | `/api/v1/catalogue-types/{id}` |
+| Eliminar tipo | `DELETE` | `/api/v1/catalogue-types/{id}` |
+| Valores por tipo (typeCode) | `GET` | `/api/v1/catalogue-values/by-type/{typeCode}` |
+| Obtener valor por ID | `GET` | `/api/v1/catalogue-values/{id}` |
+| Hijos de un valor | `GET` | `/api/v1/catalogue-values/{id}/children` |
+| Crear valor | `POST` | `/api/v1/catalogue-values` |
+| Actualizar valor | `PUT` | `/api/v1/catalogue-values/{id}` |
+| Eliminar valor | `DELETE` | `/api/v1/catalogue-values/{id}` |
+
+#### `02 – User Service` (`:8081`)
+Todos los endpoints requieren JWT válido.
+
+| Request | Método | Endpoint |
+|---|---|---|
+| Listar todos los usuarios | `GET` | `/api/v1/users` |
+| Obtener usuario por ID | `GET` | `/api/v1/users/{id}` |
+| Obtener usuario por Keycloak ID | `GET` | `/api/v1/users/keycloak/{keycloakId}` |
+| Crear usuario | `POST` | `/api/v1/users` |
+| Actualizar usuario | `PUT` | `/api/v1/users/{id}` |
+| Eliminar usuario | `DELETE` | `/api/v1/users/{id}` |
+
+#### `03 – Entrepreneurship Service` (`:8082`)
+Todos los endpoints requieren JWT válido.
+
+| Request | Método | Endpoint |
+|---|---|---|
+| Listar todos | `GET` | `/api/v1/entrepreneurships` |
+| Obtener por ID | `GET` | `/api/v1/entrepreneurships/{id}` |
+| Listar por usuario | `GET` | `/api/v1/entrepreneurships/user/{userId}` |
+| Búsqueda con filtros | `GET` | `/api/v1/entrepreneurships/search?name=&categoryId=&isPhysical=&isDigital=` |
+| Crear emprendimiento | `POST` | `/api/v1/entrepreneurships` |
+| Actualizar emprendimiento | `PUT` | `/api/v1/entrepreneurships/{id}` |
+| Eliminar emprendimiento | `DELETE` | `/api/v1/entrepreneurships/{id}` |
+
+#### `04 – Event Service` (`:8083`)
+Todos los endpoints requieren JWT válido. Incluye dos ejemplos de creación: evento presencial gratuito y evento virtual de pago.
+
+| Request | Método | Endpoint |
+|---|---|---|
+| Listar todos | `GET` | `/api/v1/events` |
+| Obtener por ID | `GET` | `/api/v1/events/{id}` |
+| Listar por creador | `GET` | `/api/v1/events/creator/{userId}` |
+| Búsqueda con filtros | `GET` | `/api/v1/events/search?name=&eventTypeId=&eventVisibilityId=&fromDate=&toDate=` |
+| Crear evento presencial | `POST` | `/api/v1/events` |
+| Crear evento virtual de pago | `POST` | `/api/v1/events` |
+| Actualizar evento | `PUT` | `/api/v1/events/{id}` |
+| Eliminar evento | `DELETE` | `/api/v1/events/{id}` |
+
+### Prerrequisito Keycloak
+
+Para que el login con usuario/contraseña funcione desde Postman, el client de Keycloak debe tener habilitado **Direct Access Grants**:
+
+```
+Keycloak Admin → Realm: emprendia → Clients → emprendia-app
+    → Settings → Capability config
+        → Direct access grants: ON
+```
 
 ---
 

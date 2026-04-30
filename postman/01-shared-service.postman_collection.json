@@ -1,0 +1,410 @@
+{
+  "info": {
+    "_postman_id": "00000001-shared-service-emprendia-0002",
+    "name": "01 – Shared Service (Puerto 8084)",
+    "description": "Catálogos compartidos de la plataforma Emprendia.\n\nReglas de acceso:\n- GET catalogue-types/** y catalogue-values/** → PÚBLICO (sin token)\n- POST / PUT / DELETE → requiere ROLE_ADMIN\n\nBase URL: {{shared_url}} = http://localhost:8084",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-fetch token si está vacío",
+          "const token = pm.environment.get('access_token');",
+          "if (!token) {",
+          "    const keycloakUrl = pm.environment.get('keycloak_url');",
+          "    const realm      = pm.environment.get('keycloak_realm');",
+          "    const clientId   = pm.environment.get('keycloak_client_id');",
+          "    const username   = pm.environment.get('keycloak_username');",
+          "    const password   = pm.environment.get('keycloak_password');",
+          "    pm.sendRequest({",
+          "        url: `${keycloakUrl}/realms/${realm}/protocol/openid-connect/token`,",
+          "        method: 'POST',",
+          "        header: { 'Content-Type': 'application/x-www-form-urlencoded' },",
+          "        body: {",
+          "            mode: 'urlencoded',",
+          "            urlencoded: [",
+          "                { key: 'grant_type', value: 'password' },",
+          "                { key: 'client_id',  value: clientId  },",
+          "                { key: 'username',   value: username  },",
+          "                { key: 'password',   value: password  }",
+          "            ]",
+          "        }",
+          "    }, (err, res) => {",
+          "        if (!err && res.code === 200) {",
+          "            pm.environment.set('access_token', res.json().access_token);",
+          "            console.log('🔑 Token auto-obtenido para Shared Service');",
+          "        } else {",
+          "            console.error('❌ No se pudo obtener el token automáticamente. Ejecuta primero 00-Auth-Keycloak > Login.');",
+          "        }",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Catalogue Types",
+      "description": "Tipos de catálogo (ej: CATEGORY, EVENT_TYPE, COUNTRY, etc.)",
+      "item": [
+        {
+          "name": "GET Listar todos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/v1/catalogue-types",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "v1", "catalogue-types"]
+            },
+            "description": "Endpoint público – no requiere token."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Tiene id', () => pm.expect(pm.response.json()).to.have.property('id'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/v1/catalogue-types/1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "v1", "catalogue-types", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Crear tipo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Tiene id asignado', () => pm.expect(pm.response.json()).to.have.property('id'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"MY_TYPE\",\n  \"name\": \"Mi Tipo\",\n  \"description\": \"Descripción del tipo\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{shared_url}}/api/v1/catalogue-types",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "v1", "catalogue-types"]
+            },
+            "description": "Requiere ROLE_ADMIN."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Actualizar tipo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"MY_TYPE_UPD\",\n  \"name\": \"Mi Tipo Actualizado\",\n  \"description\": \"Nueva descripción\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{shared_url}}/api/v1/catalogue-types/1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "v1", "catalogue-types", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Eliminar tipo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/v1/catalogue-types/1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "v1", "catalogue-types", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Catalogue Values",
+      "description": "Valores concretos de cada tipo de catálogo (ej: CATEGORY → Tecnología, Gastronomía...)",
+      "item": [
+        {
+          "name": "GET Por tipo (typeCode)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/v1/catalogue-values/by-type/CATEGORY",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "v1", "catalogue-values", "by-type", "CATEGORY"]
+            },
+            "description": "Reemplaza CATEGORY por el code del tipo que necesites. Endpoint público."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/v1/catalogue-values/1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "v1", "catalogue-values", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Hijos de un valor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/v1/catalogue-values/1/children",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "v1", "catalogue-values", "1", "children"]
+            },
+            "description": "Retorna los valores hijo de un valor padre (útil para jerarquías: País → Provincia → Ciudad)."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Crear valor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"catalogueTypeId\": 1,\n  \"code\": \"TECH\",\n  \"name\": \"Tecnología\",\n  \"description\": \"Emprendimientos tecnológicos\",\n  \"parentValueId\": null\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{shared_url}}/api/v1/catalogue-values",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "v1", "catalogue-values"]
+            },
+            "description": "Requiere ROLE_ADMIN. parentValueId es opcional (para jerarquías)."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Actualizar valor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"catalogueTypeId\": 1,\n  \"code\": \"TECH_UPD\",\n  \"name\": \"Tecnología e Innovación\",\n  \"description\": \"Emprendimientos de tech e innovación\",\n  \"parentValueId\": null\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{shared_url}}/api/v1/catalogue-values/1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "v1", "catalogue-values", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Eliminar valor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/v1/catalogue-values/1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "v1", "catalogue-values", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "GET /actuator/health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Status UP', () => pm.expect(pm.response.json().status).to.equal('UP'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/actuator/health",
+              "host": ["{{shared_url}}"],
+              "path": ["actuator", "health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-04-27T21:43:37-0500",
+    date = "2026-04-29T15:22:25-0500",
     comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.46.0.v20260407-0427, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -29,8 +29,8 @@ public class CatalogueValueMapperImpl implements CatalogueValueMapper {
         catalogueValueResponse.parentValueName( entityParentValueName( entity ) );
         catalogueValueResponse.catalogueValueId( entity.getCatalogueValueId() );
         catalogueValueResponse.code( entity.getCode() );
-        catalogueValueResponse.name( entity.getName() );
         catalogueValueResponse.description( entity.getDescription() );
+        catalogueValueResponse.name( entity.getName() );
 
         return catalogueValueResponse.build();
     }
@@ -44,8 +44,8 @@ public class CatalogueValueMapperImpl implements CatalogueValueMapper {
         CatalogueValue.CatalogueValueBuilder catalogueValue = CatalogueValue.builder();
 
         catalogueValue.code( request.getCode() );
-        catalogueValue.name( request.getName() );
         catalogueValue.description( request.getDescription() );
+        catalogueValue.name( request.getName() );
 
         return catalogueValue.build();
     }
@@ -59,11 +59,11 @@ public class CatalogueValueMapperImpl implements CatalogueValueMapper {
         if ( request.getCode() != null ) {
             entity.setCode( request.getCode() );
         }
-        if ( request.getName() != null ) {
-            entity.setName( request.getName() );
-        }
         if ( request.getDescription() != null ) {
             entity.setDescription( request.getDescription() );
+        }
+        if ( request.getName() != null ) {
+            entity.setName( request.getName() );
         }
     }
 

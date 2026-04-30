@@ -1,0 +1,351 @@
+{
+  "info": {
+    "_postman_id": "00000004-event-service-emprendia-0005",
+    "name": "04 – Event Service (Puerto 8083)",
+    "description": "Gestión de eventos y ferias de la plataforma Emprendia.\n\nTodos los endpoints requieren JWT válido.\n\nBase URL: {{event_url}} = http://localhost:8083\n\nCampos del body (EventRequest):\n- createdByUserId (Long, requerido): ID del usuario creador\n- name (String, max 150, requerido): Nombre del evento\n- description (String, opcional)\n- eventTypeId (Long, requerido): ID del CatalogueValue tipo EVENT_TYPE\n- eventVisibilityId (Long, requerido): ID del CatalogueValue tipo EVENT_VISIBILITY\n- isPaid (Boolean, requerido): Si el evento es pago\n- price (BigDecimal, opcional): Precio si isPaid=true\n- maxAttendees (Integer, opcional): Límite de asistentes\n- maxEntrepreneurships (Integer, opcional): Límite de emprendimientos expositores\n- virtualLink (String, opcional): URL para eventos virtuales\n- startDatetime (LocalDateTime, requerido): ISO-8601 ej: 2026-05-15T09:00:00\n- endDatetime (LocalDateTime, requerido): ISO-8601 ej: 2026-05-15T18:00:00\n- countryId (Long, opcional): ID del CatalogueValue COUNTRY\n- provinceId (Long, opcional): ID del CatalogueValue PROVINCE\n- cityId (Long, opcional): ID del CatalogueValue CITY\n- addressLine (String, opcional): Dirección textual",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const token = pm.environment.get('access_token');",
+          "if (!token) {",
+          "    const keycloakUrl = pm.environment.get('keycloak_url');",
+          "    const realm      = pm.environment.get('keycloak_realm');",
+          "    const clientId   = pm.environment.get('keycloak_client_id');",
+          "    const username   = pm.environment.get('keycloak_username');",
+          "    const password   = pm.environment.get('keycloak_password');",
+          "    pm.sendRequest({",
+          "        url: `${keycloakUrl}/realms/${realm}/protocol/openid-connect/token`,",
+          "        method: 'POST',",
+          "        header: { 'Content-Type': 'application/x-www-form-urlencoded' },",
+          "        body: {",
+          "            mode: 'urlencoded',",
+          "            urlencoded: [",
+          "                { key: 'grant_type', value: 'password' },",
+          "                { key: 'client_id',  value: clientId  },",
+          "                { key: 'username',   value: username  },",
+          "                { key: 'password',   value: password  }",
+          "            ]",
+          "        }",
+          "    }, (err, res) => {",
+          "        if (!err && res.code === 200) {",
+          "            pm.environment.set('access_token', res.json().access_token);",
+          "            console.log('🔑 Token auto-obtenido para Event Service');",
+          "        } else {",
+          "            console.error('❌ No se pudo obtener el token. Ejecuta primero 00-Auth-Keycloak > Login.');",
+          "        }",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "GET Listar todos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/events",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "events"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 o 404', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/events/1",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "events", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Por creador (userId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/events/creator/1",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "events", "creator", "1"]
+            },
+            "description": "Reemplaza '1' por el ID del usuario creador."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Búsqueda con filtros",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/events/search",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "events", "search"],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "Feria",
+                  "description": "Filtra por nombre (contiene)",
+                  "disabled": true
+                },
+                {
+                  "key": "eventTypeId",
+                  "value": "1",
+                  "description": "ID del CatalogueValue tipo EVENT_TYPE",
+                  "disabled": true
+                },
+                {
+                  "key": "eventVisibilityId",
+                  "value": "1",
+                  "description": "ID del CatalogueValue tipo EVENT_VISIBILITY",
+                  "disabled": true
+                },
+                {
+                  "key": "fromDate",
+                  "value": "2026-01-01T00:00:00",
+                  "description": "Formato ISO-8601: yyyy-MM-ddTHH:mm:ss",
+                  "disabled": true
+                },
+                {
+                  "key": "toDate",
+                  "value": "2026-12-31T23:59:59",
+                  "description": "Formato ISO-8601: yyyy-MM-ddTHH:mm:ss",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Todos los filtros son opcionales. Activa los que necesites en la pestaña Params.\n\nNota: las fechas deben ir en formato ISO-8601 sin zona horaria: 2026-05-15T09:00:00"
+          },
+          "response": []
+        },
+        {
+          "name": "POST Crear evento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "pm.test('Tiene id', () => pm.expect(r).to.have.property('id'));",
+                  "if (r.id) pm.environment.set('last_event_id', r.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"createdByUserId\": 1,\n  \"name\": \"Feria de Emprendimientos 2026\",\n  \"description\": \"Gran feria anual de emprendimientos innovadores\",\n  \"eventTypeId\": 1,\n  \"eventVisibilityId\": 1,\n  \"isPaid\": false,\n  \"price\": null,\n  \"maxAttendees\": 500,\n  \"maxEntrepreneurships\": 50,\n  \"virtualLink\": null,\n  \"startDatetime\": \"2026-05-15T09:00:00\",\n  \"endDatetime\": \"2026-05-15T18:00:00\",\n  \"countryId\": 1,\n  \"provinceId\": 2,\n  \"cityId\": 3,\n  \"addressLine\": \"Av. Amazonas N35-17 y Juan Pablo Sanz, Quito\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{event_url}}/api/v1/events",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "events"]
+            },
+            "description": "eventTypeId y eventVisibilityId deben ser IDs válidos del catálogo. Las fechas en formato ISO-8601 sin zona horaria."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Crear evento VIRTUAL de pago",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"createdByUserId\": 1,\n  \"name\": \"Workshop Digital de Emprendimiento\",\n  \"description\": \"Taller virtual sobre estrategias de emprendimiento digital\",\n  \"eventTypeId\": 2,\n  \"eventVisibilityId\": 1,\n  \"isPaid\": true,\n  \"price\": 25.00,\n  \"maxAttendees\": 100,\n  \"maxEntrepreneurships\": null,\n  \"virtualLink\": \"https://meet.google.com/ejemplo-sala\",\n  \"startDatetime\": \"2026-06-01T19:00:00\",\n  \"endDatetime\": \"2026-06-01T21:00:00\",\n  \"countryId\": null,\n  \"provinceId\": null,\n  \"cityId\": null,\n  \"addressLine\": null\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{event_url}}/api/v1/events",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "events"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Actualizar evento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"createdByUserId\": 1,\n  \"name\": \"Feria de Emprendimientos 2026 – Edición Actualizada\",\n  \"description\": \"Descripción actualizada del evento\",\n  \"eventTypeId\": 1,\n  \"eventVisibilityId\": 1,\n  \"isPaid\": false,\n  \"price\": null,\n  \"maxAttendees\": 600,\n  \"maxEntrepreneurships\": 60,\n  \"virtualLink\": null,\n  \"startDatetime\": \"2026-05-20T09:00:00\",\n  \"endDatetime\": \"2026-05-20T18:00:00\",\n  \"countryId\": 1,\n  \"provinceId\": 2,\n  \"cityId\": 3,\n  \"addressLine\": \"Centro de Convenciones, Quito\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{event_url}}/api/v1/events/1",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "events", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Eliminar evento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/events/1",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "events", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "GET /actuator/health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Status UP', () => pm.expect(pm.response.json().status).to.equal('UP'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/actuator/health",
+              "host": ["{{event_url}}"],
+              "path": ["actuator", "health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

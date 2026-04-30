@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-04-27T21:32:09-0500",
+    date = "2026-04-30T18:01:41-0500",
     comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.46.0.v20260407-0427, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -22,13 +22,13 @@ public class UserMapperImpl implements UserMapper {
 
         UserResponse.UserResponseBuilder userResponse = UserResponse.builder();
 
-        userResponse.userId( entity.getUserId() );
-        userResponse.keycloakId( entity.getKeycloakId() );
+        userResponse.createdAt( entity.getCreatedAt() );
         userResponse.firstName( entity.getFirstName() );
+        userResponse.keycloakId( entity.getKeycloakId() );
         userResponse.lastName( entity.getLastName() );
         userResponse.profilePictureUrl( entity.getProfilePictureUrl() );
-        userResponse.createdAt( entity.getCreatedAt() );
         userResponse.updatedAt( entity.getUpdatedAt() );
+        userResponse.userId( entity.getUserId() );
 
         return userResponse.build();
     }
@@ -41,8 +41,8 @@ public class UserMapperImpl implements UserMapper {
 
         AppUser.AppUserBuilder appUser = AppUser.builder();
 
-        appUser.keycloakId( request.getKeycloakId() );
         appUser.firstName( request.getFirstName() );
+        appUser.keycloakId( request.getKeycloakId() );
         appUser.lastName( request.getLastName() );
         appUser.profilePictureUrl( request.getProfilePictureUrl() );
 

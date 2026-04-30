@@ -1,0 +1,271 @@
+{
+  "info": {
+    "_postman_id": "00000002-user-service-emprendia-0003",
+    "name": "02 – User Service (Puerto 8081)",
+    "description": "Gestión de usuarios de la plataforma Emprendia.\n\nTodos los endpoints requieren JWT válido (Bearer {{access_token}}).\n\nBase URL: {{user_url}} = http://localhost:8081\n\nCampos del body:\n- keycloakId (String): ID del usuario en Keycloak (claim 'sub' del JWT)\n- firstName (String): Nombre\n- lastName (String): Apellido\n- profilePictureUrl (String, opcional): URL de foto de perfil",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-fetch token si está vacío",
+          "const token = pm.environment.get('access_token');",
+          "if (!token) {",
+          "    const keycloakUrl = pm.environment.get('keycloak_url');",
+          "    const realm      = pm.environment.get('keycloak_realm');",
+          "    const clientId   = pm.environment.get('keycloak_client_id');",
+          "    const username   = pm.environment.get('keycloak_username');",
+          "    const password   = pm.environment.get('keycloak_password');",
+          "    pm.sendRequest({",
+          "        url: `${keycloakUrl}/realms/${realm}/protocol/openid-connect/token`,",
+          "        method: 'POST',",
+          "        header: { 'Content-Type': 'application/x-www-form-urlencoded' },",
+          "        body: {",
+          "            mode: 'urlencoded',",
+          "            urlencoded: [",
+          "                { key: 'grant_type', value: 'password' },",
+          "                { key: 'client_id',  value: clientId  },",
+          "                { key: 'username',   value: username  },",
+          "                { key: 'password',   value: password  }",
+          "            ]",
+          "        }",
+          "    }, (err, res) => {",
+          "        if (!err && res.code === 200) {",
+          "            pm.environment.set('access_token', res.json().access_token);",
+          "            console.log('🔑 Token auto-obtenido para User Service');",
+          "        } else {",
+          "            console.error('❌ No se pudo obtener el token. Ejecuta primero 00-Auth-Keycloak > Login.');",
+          "        }",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "GET Listar todos los usuarios",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/v1/users",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Usuario por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 o 404', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Tiene id', () => pm.expect(pm.response.json()).to.have.property('id'));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/v1/users/1",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "users", "1"]
+            },
+            "description": "Reemplaza '1' por el ID del usuario."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Usuario por Keycloak ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 o 404', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/v1/users/keycloak/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "users", "keycloak", "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"]
+            },
+            "description": "Reemplaza el UUID por el claim 'sub' del JWT. Puedes obtenerlo con 'Introspect Token' en la colección de Auth."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Crear usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "pm.test('Tiene id asignado', () => pm.expect(r).to.have.property('id'));",
+                  "// Guardar el ID para usarlo en otras peticiones",
+                  "if (r.id) pm.environment.set('last_user_id', r.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"keycloakId\": \"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\",\n  \"firstName\": \"Kevin\",\n  \"lastName\": \"Guachagmira\",\n  \"profilePictureUrl\": null\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{user_url}}/api/v1/users",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "users"]
+            },
+            "description": "El keycloakId debe ser el claim 'sub' del JWT del usuario en Keycloak (UUID). Obtenlo con el endpoint Introspect."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Actualizar usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"keycloakId\": \"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\",\n  \"firstName\": \"Kevin Actualizado\",\n  \"lastName\": \"Guachagmira\",\n  \"profilePictureUrl\": \"https://ejemplo.com/foto.jpg\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{user_url}}/api/v1/users/1",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "users", "1"]
+            },
+            "description": "Reemplaza '1' por el ID del usuario a actualizar."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Eliminar usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/v1/users/1",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "users", "1"]
+            },
+            "description": "Reemplaza '1' por el ID del usuario a eliminar."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "GET /actuator/health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Status UP', () => pm.expect(pm.response.json().status).to.equal('UP'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/actuator/health",
+              "host": ["{{user_url}}"],
+              "path": ["actuator", "health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
