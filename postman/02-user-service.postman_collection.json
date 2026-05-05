@@ -237,6 +237,444 @@
       ]
     },
     {
+      "name": "User Contacts",
+      "description": "Gestión de contactos de usuario (teléfono, email, etc.)",
+      "item": [
+        {
+          "name": "GET Listar todos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/v1/user-contacts",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "user-contacts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 o 404', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/v1/user-contacts/1",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "user-contacts", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Crear contacto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "pm.test('Tiene userContactId', () => pm.expect(r).to.have.property('userContactId'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"contactTypeId\": 1,\n  \"contactValue\": \"0998765432\",\n  \"isPrimary\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{user_url}}/api/v1/user-contacts",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "user-contacts"]
+            },
+            "description": "contactTypeId debe ser ID de catalogue_value tipo CONTACT_TYPE (1=PHONE, 2=EMAIL, etc.)"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Actualizar contacto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"contactTypeId\": 2,\n  \"contactValue\": \"juan.perez@email.com\",\n  \"isPrimary\": false\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{user_url}}/api/v1/user-contacts/1",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "user-contacts", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Eliminar contacto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/v1/user-contacts/1",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "user-contacts", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Addresses",
+      "description": "Gestión de direcciones de usuario",
+      "item": [
+        {
+          "name": "GET Listar todos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/v1/user-addresses",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "user-addresses"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 o 404', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/v1/user-addresses/1",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "user-addresses", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Crear dirección",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "pm.test('Tiene userAddressId', () => pm.expect(r).to.have.property('userAddressId'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"countryId\": 1,\n  \"provinceId\": 19,\n  \"cityId\": 100,\n  \"parishId\": 200,\n  \"addressLine\": \"Av. 10 de Agosto y Orellana\",\n  \"reference\": \"Edificio Azul, piso 3\",\n  \"isPrimary\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{user_url}}/api/v1/user-addresses",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "user-addresses"]
+            },
+            "description": "IDs según catálogos COUNTRY > PROVINCE > CITY > PARISH. Usa shared-service para obtener los valores."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Actualizar dirección",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"countryId\": 1,\n  \"provinceId\": 19,\n  \"cityId\": 100,\n  \"parishId\": 201,\n  \"addressLine\": \"Av. Amazonas N21-21 y Roca\",\n  \"reference\": \"Frente al parque\",\n  \"isPrimary\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{user_url}}/api/v1/user-addresses/1",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "user-addresses", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Eliminar dirección",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/v1/user-addresses/1",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "user-addresses", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Identifications",
+      "description": "Gestión de identificaciones de usuario (cédula, RUC, pasaporte)",
+      "item": [
+        {
+          "name": "GET Listar todos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/v1/user-identifications",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "user-identifications"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 o 404', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/v1/user-identifications/1",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "user-identifications", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Crear identificación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "pm.test('Tiene userIdentificationId', () => pm.expect(r).to.have.property('userIdentificationId'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"identificationTypeId\": 1,\n  \"identificationNumber\": \"1234567890\",\n  \"issuedCountryId\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{user_url}}/api/v1/user-identifications",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "user-identifications"]
+            },
+            "description": "identificationTypeId según catálogo IDENTIFICATION_TYPE: 1=CEDULA, 2=RUC, 3=PASSPORT, etc."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Actualizar identificación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"identificationTypeId\": 2,\n  \"identificationNumber\": \"1234567890001\",\n  \"issuedCountryId\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{user_url}}/api/v1/user-identifications/1",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "user-identifications", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Eliminar identificación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/v1/user-identifications/1",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "user-identifications", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Health Check",
       "item": [
         {

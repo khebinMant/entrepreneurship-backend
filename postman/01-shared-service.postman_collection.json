@@ -376,6 +376,389 @@
       ]
     },
     {
+      "name": "Image Gallery",
+      "description": "Sistema de gestión de imágenes para USER, ENTREPRENEURSHIP y EVENT. Límites: USER=5 imágenes, ENTREPRENEURSHIP=10, EVENT=20. Max 5MB por archivo. Formatos: JPEG, PNG, WebP, GIF.",
+      "item": [
+        {
+          "name": "Upload Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "pm.test('Tiene imageId', () => pm.expect(r).to.have.property('imageId'));",
+                  "pm.test('Tiene imageUrl', () => pm.expect(r).to.have.property('imageUrl'));",
+                  "if (r.imageId) pm.environment.set('last_image_id', r.imageId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Archivo imagen (max 5MB, JPEG/PNG/WebP/GIF)"
+                },
+                {
+                  "key": "entityType",
+                  "value": "ENTREPRENEURSHIP",
+                  "type": "text",
+                  "description": "USER | ENTREPRENEURSHIP | EVENT"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1",
+                  "type": "text",
+                  "description": "ID de la entidad (userId, entrepreneurshipId, eventId)"
+                },
+                {
+                  "key": "displayOrder",
+                  "value": "1",
+                  "type": "text",
+                  "description": "Orden de visualización (opcional)"
+                },
+                {
+                  "key": "altText",
+                  "value": "Producto artesanal",
+                  "type": "text",
+                  "description": "Texto alternativo para accesibilidad"
+                },
+                {
+                  "key": "description",
+                  "value": "Producto hecho a mano",
+                  "type": "text",
+                  "description": "Descripción de la imagen"
+                },
+                {
+                  "key": "uploadedByUserId",
+                  "value": "1",
+                  "type": "text",
+                  "description": "ID del usuario que subió la imagen"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{shared_url}}/api/images/upload",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "upload"]
+            },
+            "description": "Subir imagen a galería. Verifica límites antes: /api/images/can-add-more"
+          },
+          "response": []
+        },
+        {
+          "name": "GET Images por Entidad",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/images?entityType=ENTREPRENEURSHIP&entityId=1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images"],
+              "query": [
+                {
+                  "key": "entityType",
+                  "value": "ENTREPRENEURSHIP",
+                  "description": "USER | ENTREPRENEURSHIP | EVENT"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1",
+                  "description": "ID de la entidad"
+                }
+              ]
+            },
+            "description": "Obtener todas las imágenes de una entidad, ordenadas por displayOrder."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Image por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 o 404', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/images/1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "v1", "images", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Actualizar metadata",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entityType\": \"ENTREPRENEURSHIP\",\n  \"entityId\": 1,\n  \"imageUrl\": \"http://localhost:8084/api/files/entrepreneurships/1/gallery/20260505_123456_abc123.jpg\",\n  \"fileName\": \"20260505_123456_abc123.jpg\",\n  \"displayOrder\": 2,\n  \"altText\": \"Producto actualizado\",\n  \"description\": \"Descripción actualizada\",\n  \"widthPx\": 1920,\n  \"heightPx\": 1080,\n  \"fileSizeKb\": 450,\n  \"mimeType\": \"image/jpeg\",\n  \"uploadedByUserId\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{shared_url}}/api/images/1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "1"]
+            },
+            "description": "Actualiza solo la metadata. Para cambiar el archivo, debes eliminar y re-subir."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/images/1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "1"]
+            },
+            "description": "Elimina la imagen del storage y su registro en BD."
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE All por Entidad",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/images?entityType=USER&entityId=1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images"],
+              "query": [
+                {
+                  "key": "entityType",
+                  "value": "USER"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Elimina todas las imágenes de una entidad."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Reorder Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[1, 3, 2, 5, 4]",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{shared_url}}/api/images/reorder?entityType=ENTREPRENEURSHIP&entityId=1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "reorder"],
+              "query": [
+                {
+                  "key": "entityType",
+                  "value": "ENTREPRENEURSHIP"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Reordena imágenes. Body es array con los imageIds en el orden deseado."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Count Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Es número', () => pm.expect(pm.response.json()).to.be.a('number'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/images/count?entityType=EVENT&entityId=1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "count"],
+              "query": [
+                {
+                  "key": "entityType",
+                  "value": "EVENT"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Retorna cantidad de imágenes que tiene la entidad."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Can Add More",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Es boolean', () => pm.expect(pm.response.json()).to.be.a('boolean'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/images/can-add-more?entityType=USER&entityId=1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "can-add-more"],
+              "query": [
+                {
+                  "key": "entityType",
+                  "value": "USER",
+                  "description": "Límite USER=5, ENTREPRENEURSHIP=10, EVENT=20"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Verifica si la entidad puede agregar más imágenes según límites."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Archivo (LOCAL only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/files/users/1/profile.jpg",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "files", "users", "1", "profile.jpg"]
+            },
+            "description": "Solo funciona en storage.type=local. En prod (Digital Ocean), las URLs son públicas y NO pasan por este endpoint.\n\nEjemplos de rutas:\n- /api/files/users/{userId}/profile.jpg\n- /api/files/users/{userId}/gallery/{fileName}\n- /api/files/entrepreneurships/{id}/logo.jpg\n- /api/files/entrepreneurships/{id}/gallery/{fileName}\n- /api/files/events/{id}/cover.jpg\n- /api/files/events/{id}/gallery/{fileName}"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Health Check",
       "item": [
         {

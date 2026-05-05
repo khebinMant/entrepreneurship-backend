@@ -1,9 +1,11 @@
 package com.project.emprendia.user.service.impl;
 
+import com.project.emprendia.user.domain.AppUser;
 import com.project.emprendia.user.domain.UserIdentification;
 import com.project.emprendia.user.dto.UserIdentificationRequest;
 import com.project.emprendia.user.dto.UserIdentificationResponse;
 import com.project.emprendia.user.repository.UserIdentificationRepository;
+import com.project.emprendia.user.repository.UserRepository;
 import com.project.emprendia.user.service.UserIdentificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import java.util.stream.Collectors;
 public class UserIdentificationServiceImpl implements UserIdentificationService {
 
     private final UserIdentificationRepository userIdentificationRepository;
+    private final UserRepository userRepository;
 
     @Override
     public List<UserIdentificationResponse> findAll() {
@@ -55,16 +58,21 @@ public class UserIdentificationServiceImpl implements UserIdentificationService 
     }
 
     private UserIdentificationResponse toResponse(UserIdentification identification) {
-        UserIdentificationResponse response = new UserIdentificationResponse();
-        response.setId(identification.getId());
-        response.setIdentificationTypeId(identification.getIdentificationTypeId());
-        response.setIdentificationNumber(identification.getIdentificationNumber());
-        response.setIssuedCountryId(identification.getIssuedCountryId());
-        return response;
+        return UserIdentificationResponse.builder()
+                .userIdentificationId(identification.getUserIdentificationId())
+                .userId(identification.getUser().getUserId())
+                .identificationTypeId(identification.getIdentificationTypeId())
+                .identificationNumber(identification.getIdentificationNumber())
+                .issuedCountryId(identification.getIssuedCountryId())
+                .build();
     }
 
     private UserIdentification toEntity(UserIdentificationRequest request) {
+        AppUser user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + request.getUserId()));
+        
         UserIdentification identification = new UserIdentification();
+        identification.setUser(user);
         identification.setIdentificationTypeId(request.getIdentificationTypeId());
         identification.setIdentificationNumber(request.getIdentificationNumber());
         identification.setIssuedCountryId(request.getIssuedCountryId());
