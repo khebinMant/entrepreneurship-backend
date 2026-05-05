@@ -1,9 +1,11 @@
 package com.project.emprendia.user.service.impl;
 
+import com.project.emprendia.user.domain.AppUser;
 import com.project.emprendia.user.domain.UserAddress;
 import com.project.emprendia.user.dto.UserAddressRequest;
 import com.project.emprendia.user.dto.UserAddressResponse;
 import com.project.emprendia.user.repository.UserAddressRepository;
+import com.project.emprendia.user.repository.UserRepository;
 import com.project.emprendia.user.service.UserAddressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import java.util.stream.Collectors;
 public class UserAddressServiceImpl implements UserAddressService {
 
     private final UserAddressRepository userAddressRepository;
+    private final UserRepository userRepository;
 
     @Override
     public List<UserAddressResponse> findAll() {
@@ -55,20 +58,25 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     private UserAddressResponse toResponse(UserAddress address) {
-        UserAddressResponse response = new UserAddressResponse();
-        response.setId(address.getId());
-        response.setCountryId(address.getCountryId());
-        response.setProvinceId(address.getProvinceId());
-        response.setCityId(address.getCityId());
-        response.setParishId(address.getParishId());
-        response.setAddressLine(address.getAddressLine());
-        response.setReference(address.getReference());
-        response.setIsPrimary(address.getIsPrimary());
-        return response;
+        return UserAddressResponse.builder()
+                .userAddressId(address.getUserAddressId())
+                .userId(address.getUser().getUserId())
+                .countryId(address.getCountryId())
+                .provinceId(address.getProvinceId())
+                .cityId(address.getCityId())
+                .parishId(address.getParishId())
+                .addressLine(address.getAddressLine())
+                .reference(address.getReference())
+                .isPrimary(address.getIsPrimary())
+                .build();
     }
 
     private UserAddress toEntity(UserAddressRequest request) {
+        AppUser user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + request.getUserId()));
+        
         UserAddress address = new UserAddress();
+        address.setUser(user);
         address.setCountryId(request.getCountryId());
         address.setProvinceId(request.getProvinceId());
         address.setCityId(request.getCityId());

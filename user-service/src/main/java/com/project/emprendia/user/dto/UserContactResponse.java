@@ -7,6 +7,7 @@ import lombok.Data;
 @Builder
 public class UserContactResponse {
     private Long userContactId;
+    private Long userId;
     private Long contactTypeId;
     private String contactValue;
     private Boolean isPrimary;

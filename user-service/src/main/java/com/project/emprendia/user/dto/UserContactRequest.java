@@ -8,6 +8,9 @@ import lombok.Data;
 @Data
 public class UserContactRequest {
 
+    @NotNull(message = "User ID is required")
+    private Long userId;
+
     @NotNull
     private Long contactTypeId;
 

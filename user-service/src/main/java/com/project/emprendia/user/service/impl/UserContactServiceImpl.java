@@ -1,9 +1,11 @@
 package com.project.emprendia.user.service.impl;
 
+import com.project.emprendia.user.domain.AppUser;
 import com.project.emprendia.user.domain.UserContact;
 import com.project.emprendia.user.dto.UserContactRequest;
 import com.project.emprendia.user.dto.UserContactResponse;
 import com.project.emprendia.user.repository.UserContactRepository;
+import com.project.emprendia.user.repository.UserRepository;
 import com.project.emprendia.user.service.UserContactService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import java.util.stream.Collectors;
 public class UserContactServiceImpl implements UserContactService {
 
     private final UserContactRepository userContactRepository;
+    private final UserRepository userRepository;
 
     @Override
     public List<UserContactResponse> findAll() {
@@ -55,16 +58,21 @@ public class UserContactServiceImpl implements UserContactService {
     }
 
     private UserContactResponse toResponse(UserContact contact) {
-        UserContactResponse response = new UserContactResponse();
-        response.setId(contact.getId());
-        response.setContactTypeId(contact.getContactTypeId());
-        response.setContactValue(contact.getContactValue());
-        response.setIsPrimary(contact.getIsPrimary());
-        return response;
+        return UserContactResponse.builder()
+                .userContactId(contact.getUserContactId())
+                .userId(contact.getUser().getUserId())
+                .contactTypeId(contact.getContactTypeId())
+                .contactValue(contact.getContactValue())
+                .isPrimary(contact.getIsPrimary())
+                .build();
     }
 
     private UserContact toEntity(UserContactRequest request) {
+        AppUser user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + request.getUserId()));
+        
         UserContact contact = new UserContact();
+        contact.setUser(user);
         contact.setContactTypeId(request.getContactTypeId());
         contact.setContactValue(request.getContactValue());
         contact.setIsPrimary(request.getIsPrimary());

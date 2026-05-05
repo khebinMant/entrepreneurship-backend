@@ -7,6 +7,7 @@ import lombok.Data;
 @Builder
 public class UserIdentificationResponse {
     private Long userIdentificationId;
+    private Long userId;
     private Long identificationTypeId;
     private String identificationNumber;
     private Long issuedCountryId;
