@@ -143,7 +143,8 @@ CREATE TABLE image_gallery (
   image_id SERIAL PRIMARY KEY,
   entity_type VARCHAR(50) NOT NULL,  -- USER | ENTREPRENEURSHIP | EVENT
   entity_id BIGINT NOT NULL,
-  image_url TEXT NOT NULL,
+  image_url TEXT NOT NULL,           -- URL completa: http://localhost:8084/api/files/users/1/file.jpg
+  storage_path TEXT,                 -- Path relativo: users/1/file.jpg
   file_name VARCHAR(255),
   display_order INT,
   alt_text VARCHAR(255),

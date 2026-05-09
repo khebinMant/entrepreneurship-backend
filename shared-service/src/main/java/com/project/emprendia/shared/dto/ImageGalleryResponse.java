@@ -20,7 +20,8 @@ public class ImageGalleryResponse {
     private Long imageId;
     private EntityType entityType;
     private Long entityId;
-    private String imageUrl;
+    private String imageUrl;            // URL completa: http://localhost:8084/api/files/users/1/file.jpg
+    private String storagePath;         // Path relativo: users/1/file.jpg (útil para desarrollo local)
     private String fileName;
     private Integer displayOrder;
     private String altText;

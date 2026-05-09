@@ -172,7 +172,8 @@ CREATE TABLE image_gallery (
   image_id SERIAL PRIMARY KEY,
   entity_type VARCHAR(50) NOT NULL,  -- 'USER' | 'ENTREPRENEURSHIP' | 'EVENT'
   entity_id BIGINT NOT NULL,
-  image_url TEXT NOT NULL,
+  image_url TEXT NOT NULL,           -- URL completa para acceso HTTP
+  storage_path TEXT,                 -- Path relativo en storage: users/1/file.jpg
   file_name VARCHAR(255) NOT NULL,
   display_order INT,[README.md](README.md)
   alt_text VARCHAR(255),

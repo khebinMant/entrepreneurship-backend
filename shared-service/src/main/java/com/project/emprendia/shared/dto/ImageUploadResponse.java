@@ -14,7 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ImageUploadResponse {
 
-    private String imageUrl;
+    private String imageUrl;           // URL completa: http://localhost:8084/api/files/users/1/file.jpg
+    private String storagePath;        // Path relativo: users/1/file.jpg
     private String fileName;
     private Integer fileSizeKb;
     private Integer widthPx;

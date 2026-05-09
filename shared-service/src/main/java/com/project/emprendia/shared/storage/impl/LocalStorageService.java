@@ -92,6 +92,7 @@ public class LocalStorageService implements StorageService {
 
             return StorageResult.builder()
                     .fileUrl(fileUrl)
+                    .storagePath(relativePath.replace("\\", "/"))
                     .fileName(uniqueFileName)
                     .contentType(storageFile.getContentType())
                     .fileSizeBytes(storageFile.getSize())

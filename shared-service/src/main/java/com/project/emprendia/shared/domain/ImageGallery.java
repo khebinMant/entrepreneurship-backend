@@ -42,6 +42,9 @@ public class ImageGallery {
     @Column(name = "image_url", nullable = false, columnDefinition = "TEXT")
     private String imageUrl;
 
+    @Column(name = "storage_path", columnDefinition = "TEXT")
+    private String storagePath;  // Path relativo: users/1/file.jpg
+
     @Column(name = "file_name", nullable = false)
     private String fileName;
 

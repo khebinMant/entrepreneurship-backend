@@ -29,6 +29,7 @@ public interface ImageGalleryMapper {
      * Convert request DTO to ImageGallery entity
      */
     @Mapping(target = "imageId", ignore = true)
+    @Mapping(target = "storagePath", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     ImageGallery toEntity(ImageGalleryRequest request);
@@ -37,6 +38,7 @@ public interface ImageGalleryMapper {
      * Update existing ImageGallery entity from request DTO
      */
     @Mapping(target = "imageId", ignore = true)
+    @Mapping(target = "storagePath", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateEntity(ImageGalleryRequest request, @MappingTarget ImageGallery imageGallery);

@@ -14,7 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StorageResult {
     
-    private String fileUrl;
+    private String fileUrl;        // URL completa para acceso HTTP
+    private String storagePath;    // Path relativo en el storage (users/1/file.jpg)
     private String fileName;
     private String contentType;
     private long fileSizeBytes;

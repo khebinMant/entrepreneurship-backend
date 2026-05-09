@@ -137,6 +137,7 @@ public class CloudStorageService implements StorageService {
 
             return StorageResult.builder()
                     .fileUrl(fileUrl)
+                    .storagePath(key)
                     .fileName(uniqueFileName)
                     .contentType(storageFile.getContentType())
                     .fileSizeBytes(storageFile.getSize())

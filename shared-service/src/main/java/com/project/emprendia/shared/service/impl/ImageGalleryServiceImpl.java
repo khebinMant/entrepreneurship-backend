@@ -118,6 +118,7 @@ public class ImageGalleryServiceImpl implements ImageGalleryService {
                     .entityType(metadata.getEntityType())
                     .entityId(metadata.getEntityId())
                     .imageUrl(storageResult.getFileUrl())
+                    .storagePath(storageResult.getStoragePath())
                     .fileName(storageResult.getFileName())
                     .displayOrder(displayOrder)
                     .altText(metadata.getAltText())
@@ -138,6 +139,7 @@ public class ImageGalleryServiceImpl implements ImageGalleryService {
 
             return ImageUploadResponse.builder()
                     .imageUrl(storageResult.getFileUrl())
+                    .storagePath(storageResult.getStoragePath())
                     .fileName(storageResult.getFileName())
                     .fileSizeKb((int) (storageResult.getFileSizeBytes() / 1024))
                     .widthPx(width)
