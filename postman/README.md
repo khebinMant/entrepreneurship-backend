@@ -41,6 +41,16 @@ Gestión de eventos:
 - **Event Invitations**: Invitaciones a emprendimientos
 - Búsqueda por fechas, tipo, visibilidad
 
+### 05 – Image Management ⭐ NUEVA
+Gestión completa de imágenes para todas las entidades:
+- **USER Images**: Profile + galería (certificados, premios) - Límite: 5
+- **ENTREPRENEURSHIP Images**: Logo + galería de productos - Límite: 10
+- **EVENT Images**: Portada + galería de momentos - Límite: 20
+- Upload multipart con validaciones automáticas
+- Reordenamiento de galería (drag & drop simulado)
+- Verificación de límites antes de subir
+- Descarga directa de archivos (solo storage local)
+
 ## 🚀 Configuración Inicial
 
 ### 1. Importar Environment
@@ -140,14 +150,24 @@ Todas las requests incluyen tests de validación:
 
 ### Crear Emprendimiento Completo
 1. `03-Entrepreneurship > Entrepreneurships > POST Crear emprendimiento`
-2. `01-Shared > Image Gallery > Upload Image` (entityType=ENTREPRENEURSHIP, entityId={id})
-3. Repetir upload hasta 10 imágenes de galería
+2. `05-Image Management > ENTREPRENEURSHIP Images > Upload Logo` (displayOrder=0)
+3. `05-Image Management > ENTREPRENEURSHIP Images > Upload Product Image` (galería)
+4. `05-Image Management > ENTREPRENEURSHIP Images > Reorder Product Images`
 
 ### Crear Evento
 1. `04-Event > Events > POST Crear evento`
 2. `04-Event > Event Spaces > POST Crear espacio`
 3. `04-Event > Event Invitations > POST Crear invitación`
-4. `01-Shared > Image Gallery > Upload Image` (entityType=EVENT, entityId={id})
+4. `05-Image Management > EVENT Images > Upload Event Cover` (displayOrder=0)
+5. `05-Image Management > EVENT Images > Upload Event Gallery Image`
+
+### Gestión de Imágenes Completa
+1. **Verificar límite**: `05-Image Management > Can Add More Images`
+2. **Subir imagen**: `05-Image Management > Upload Image` (según tipo de entidad)
+3. **Listar imágenes**: `05-Image Management > Get Images`
+4. **Reordenar**: `05-Image Management > Reorder Images`
+5. **Actualizar metadata**: `05-Image Management > Update Image Metadata`
+6. **Eliminar**: `05-Image Management > Delete Image`
 
 ## 🐛 Troubleshooting
 
@@ -177,8 +197,30 @@ Las colecciones guardan automáticamente:
 - `last_entrepreneurship_id`: ID del último emprendimiento creado
 - `last_event_id`: ID del último evento creado
 - `last_image_id`: ID de la última imagen subida
+- `user_profile_image_id`: ID de la imagen de perfil del usuario
+- `entrepreneurship_logo_id`: ID del logo del emprendimiento
+- `event_cover_id`: ID de la portada del evento
 
 Puedes usarlas en otras requests como `{{last_user_id}}`.
+
+## 🔗 Comunicación entre Microservicios
+
+### Feign Client + Circuit Breaker
+Los microservicios ahora se comunican entre sí usando:
+- **OpenFeign**: Cliente HTTP declarativo
+- **Resilience4j**: Circuit Breaker para tolerancia a fallos
+- **Fallback methods**: Respuestas alternativas cuando un servicio falla
+
+### Ejemplos de integración:
+- **user-service** → **shared-service**: Obtiene catálogos (países, tipos de contacto)
+- **entrepreneurship-service** → **user-service**: Obtiene información del propietario
+- **entrepreneurship-service** → **shared-service**: Obtiene categorías y ubicaciones
+- **event-service** → **user-service**: Obtiene información del organizador
+- **event-service** → **entrepreneurship-service**: Obtiene emprendimientos participantes
+- **event-service** → **shared-service**: Obtiene tipos de evento y ubicaciones
+
+### Documentación completa:
+Ver `FEIGN_INTEGRATION_GUIDE.md` en la raíz del proyecto para detalles técnicos.
 
 ## 🔄 Storage Configuration
 
@@ -202,6 +244,27 @@ URLs públicas directas (NO pasan por la API).
 
 ---
 
-**Versión**: 2.0  
-**Última actualización**: Mayo 2026  
+**Versión**: 3.0  
+**Última actualización**: Mayo 8, 2026  
 **Contacto**: Kevin Guachagmira
+
+## 🆕 Changelog
+
+### v3.0 (Mayo 8, 2026)
+- ✅ Nueva colección: **05-Image Management**
+- ✅ Implementación de **Feign Client** entre servicios
+- ✅ Implementación de **Circuit Breaker** con Resilience4j
+- ✅ DTOs compartidos para comunicación entre microservicios
+- ✅ Documentación completa en `FEIGN_INTEGRATION_GUIDE.md`
+
+### v2.0 (Mayo 5, 2026)
+- ✅ Sistema de gestión de imágenes en shared-service
+- ✅ Storage local y cloud (Digital Ocean Spaces)
+- ✅ Límites por tipo de entidad (USER=5, ENTREPRENEURSHIP=10, EVENT=20)
+
+### v1.0 (Abril 2026)
+- ✅ Colecciones iniciales de todos los microservicios
+- ✅ Integración con Keycloak OAuth2
+- ✅ Tests automatizados en cada request
+
+

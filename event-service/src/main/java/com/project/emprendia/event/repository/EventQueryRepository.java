@@ -18,7 +18,7 @@ public class EventQueryRepository {
 
     public List<Event> search(String name, Long eventTypeId, Long eventVisibilityId,
                                LocalDateTime fromDate, LocalDateTime toDate) {
-        QEvent event = QEvent.event1;
+        QEvent event = QEvent.event;
         BooleanBuilder predicate = new BooleanBuilder();
 
         if (name != null && !name.isBlank()) {

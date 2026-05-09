@@ -16,7 +16,7 @@ public class CatalogueValueQueryRepository {
     private final JPAQueryFactory queryFactory;
 
     public List<CatalogueValue> findByTypeCode(String typeCode) {
-        QCatalogueValue catalogueValue = QCatalogueValue.catalogueValue1;
+        QCatalogueValue catalogueValue = QCatalogueValue.catalogueValue;
         return queryFactory.selectFrom(catalogueValue)
             .join(catalogueValue.catalogueType).fetchJoin()
             .where(catalogueValue.catalogueType.code.eq(typeCode))
@@ -25,7 +25,7 @@ public class CatalogueValueQueryRepository {
     }
 
     public Optional<CatalogueValue> findByTypeCodeAndCode(String typeCode, String code) {
-        QCatalogueValue catalogueValue = QCatalogueValue.catalogueValue1;
+        QCatalogueValue catalogueValue = QCatalogueValue.catalogueValue;
         return Optional.ofNullable(
             queryFactory.selectFrom(catalogueValue)
                 .join(catalogueValue.catalogueType).fetchJoin()
@@ -36,7 +36,7 @@ public class CatalogueValueQueryRepository {
     }
 
     public List<CatalogueValue> findChildrenByParentId(Long parentId) {
-        QCatalogueValue catalogueValue = QCatalogueValue.catalogueValue1;
+        QCatalogueValue catalogueValue = QCatalogueValue.catalogueValue;
         return queryFactory.selectFrom(catalogueValue)
             .where(catalogueValue.parentValue.catalogueValueId.eq(parentId))
             .orderBy(catalogueValue.name.asc())

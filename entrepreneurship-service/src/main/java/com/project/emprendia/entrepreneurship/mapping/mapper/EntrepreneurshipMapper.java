@@ -18,7 +18,6 @@ public interface EntrepreneurshipMapper {
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "locations", ignore = true)
     @Mapping(target = "socialLinks", ignore = true)
-    @Mapping(target = "gallery", ignore = true)
     Entrepreneurship toEntity(EntrepreneurshipRequest request);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
@@ -29,6 +28,5 @@ public interface EntrepreneurshipMapper {
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "locations", ignore = true)
     @Mapping(target = "socialLinks", ignore = true)
-    @Mapping(target = "gallery", ignore = true)
     void updateEntityFromRequest(EntrepreneurshipRequest request, @MappingTarget Entrepreneurship entity);
 }

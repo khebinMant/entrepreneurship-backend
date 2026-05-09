@@ -39,6 +39,42 @@ server:
 spring:
   config:
     activate:
+      on-profile: local-cloud
+  datasource:
+    url: jdbc:postgresql://localhost:5433/postgres
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:emprendia2026}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/emprendia}
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
+storage:
+  type: cloud
+  cloud:
+    endpoint: ${DO_SPACES_ENDPOINT:https://nyc3.digitaloceanspaces.com}
+    region: ${DO_SPACES_REGION:us-east-1}
+    access-key: ${DO_SPACES_ACCESS_KEY}
+    secret-key: ${DO_SPACES_SECRET_KEY}
+    bucket-name: ${DO_SPACES_BUCKET_NAME}
+
+server:
+  port: 8084
+
+---
+spring:
+  config:
+    activate:
       on-profile: prod
   datasource:
     url: ${DB_URL}

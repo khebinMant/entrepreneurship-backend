@@ -66,6 +66,8 @@ public class CloudStorageService implements StorageService {
     @PostConstruct
     public void initializeS3Client() {
         try {
+            log.info("🚀 Initializing CloudStorageService...");
+
             AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
 
             this.s3Client = S3Client.builder()
@@ -79,8 +81,8 @@ public class CloudStorageService implements StorageService {
                 baseUrl = endpoint + "/" + bucketName;
             }
 
-            log.info("Cloud storage (Digital Ocean Spaces) initialized successfully");
-            log.info("Bucket: {}, Endpoint: {}", bucketName, endpoint);
+            log.info("✅ Cloud storage (Digital Ocean Spaces) initialized successfully");
+            log.info("📦 Bucket: {}, Endpoint: {}", bucketName, endpoint);
 
         } catch (Exception e) {
             log.error("Failed to initialize cloud storage", e);

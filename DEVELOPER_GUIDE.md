@@ -377,7 +377,29 @@ export DO_SPACES_BUCKET_NAME=emprendia-bucket
 ```gradle
 dependencyManagement {
     imports {
-        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2023.0.3'
+        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2024.0.0'
+    }
+}
+```
+
+### Error: "Spring Boot is not compatible with this Spring Cloud release train"
+
+**Causa**: Incompatibilidad entre versiones de Spring Boot y Spring Cloud
+
+**Solución**: Usar versiones compatibles:
+- Spring Boot 3.4.1 + Spring Cloud 2024.0.0 ✅
+- Spring Boot 3.3.x + Spring Cloud 2023.0.x
+- Spring Boot 3.2.x + Spring Cloud 2023.0.x
+
+```gradle
+plugins {
+    id 'org.springframework.boot' version '3.4.1'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.boot:spring-boot-dependencies:3.4.1'
+        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2024.0.0'
     }
 }
 ```
@@ -459,7 +481,7 @@ dependencies {
 
 dependencyManagement {
     imports {
-        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2023.0.3'
+        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2024.0.0'
     }
 }
 ```

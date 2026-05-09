@@ -1,10 +1,62 @@
 # Emprendia - Plataforma de Emprendimientos
 
+Recordar no crear más archivos siempre actualizar los 3 .md existentes
+y en cada micro solo actualizar el README.md con la descripción general y arquitectura específica de cada microservicio, sin entrar en detalles técnicos (eso va en DEVELOPER_GUIDE.md).
+
+## 📚 Documentación del Proyecto
+
+### Documentos Principales (léelos en orden)
+
+1. **README.md** (este archivo) - Introducción y arquitectura general
+2. **[DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)** - Guía técnica completa
+   - Compilación y ejecución
+   - Comunicación entre microservicios (Feign + Circuit Breaker)
+   - Sistema de imágenes
+   - Configuración por ambiente
+   - Troubleshooting
+3. **[API_GUIDE.md](API_GUIDE.md)** - Endpoints y Postman
+   - Colecciones Postman
+   - Todos los endpoints documentados
+   - Ejemplos de uso completos
+   - Testing automatizado
+
+### Documentación Adicional
+
+- **[postman/README.md](postman/README.md)** - Guía de colecciones Postman
+- **[../db/tesis_db.md](../db/tesis_db.md)** - Modelo de base de datos completo
+
+---
+
+## 🎯 Quick Start
+
+```powershell
+# 1. Compilar
+./gradlew clean build -x test
+
+# 2. Ejecutar servicios (en orden)
+cd shared-service && ./gradlew bootRun --args='--spring.profiles.active=local'
+cd user-service && ./gradlew bootRun --args='--spring.profiles.active=local'
+cd entrepreneurship-service && ./gradlew bootRun --args='--spring.profiles.active=local'
+cd event-service && ./gradlew bootRun --args='--spring.profiles.active=local'
+
+# 3. Verificar
+curl http://localhost:8084/actuator/health
+curl http://localhost:8081/actuator/health
+curl http://localhost:8082/actuator/health
+curl http://localhost:8083/actuator/health
+
+# 4. Probar con Postman
+# Importar: postman/*.json
+# Ejecutar: 00-Auth > Login
+# Usar cualquier colección
+```
+
+---
+
 ## Descripción General
 
-Emprendia es una plataforma de **microservicios independientes** construida con **Spring Boot 3.5.7** para gestionar emprendimientos, eventos y la participación de negocios en ferias y exposiciones. Cada microservicio es desplegable de forma autónoma, con su propio `settings.gradle` y `build.gradle` completo.
+Emprendia es una plataforma de **microservicios independientes** construida con **Spring Boot 3.5.7** para gestionar emprendimientos, eventos y la participación de negocios en ferias y exposiciones.
 
-La base de datos está documentada en [`../db/tesis_db.md`](../db/tesis_db.md).
 
 ---
 
@@ -122,7 +174,7 @@ CREATE TABLE image_gallery (
   entity_id BIGINT NOT NULL,
   image_url TEXT NOT NULL,
   file_name VARCHAR(255) NOT NULL,
-  display_order INT,
+  display_order INT,[README.md](README.md)
   alt_text VARCHAR(255),
   description TEXT,
   width_px INT,
@@ -140,7 +192,8 @@ CREATE TABLE image_gallery (
 
 | Tecnología | Versión | Uso |
 |---|---|---|
-| Spring Boot | 3.5.7 | Framework base |
+| Spring Boot | 3.4.1 | Framework base |
+| Spring Cloud | 2024.0.0 | OpenFeign + Circuit Breaker |
 | Spring Web | - | REST API |
 | Spring Data JPA | - | Persistencia |
 | Spring Security + OAuth2 Resource Server | - | Autenticación JWT |
@@ -754,5 +807,5 @@ Keycloak Admin → Realm: emprendia → Clients → emprendia-app
 
 **Kevin Guachagmira**  
 Email: mantillagka@gmail.com  
-Fecha: Abril 2026  
-Proyecto: Tesis
+Fecha: Mayo 2026  
+Proyecto: Plataforma Emprendia - Tesis NIBE

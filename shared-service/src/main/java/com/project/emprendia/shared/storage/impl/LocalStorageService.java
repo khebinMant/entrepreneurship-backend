@@ -49,7 +49,9 @@ public class LocalStorageService implements StorageService {
     private void initializeStorage() {
         try {
             Files.createDirectories(rootLocation);
-            log.info("Local storage initialized at: {}", rootLocation);
+            log.info("🚀 LocalStorageService initialized");
+            log.info("📁 Local storage path: {}", rootLocation);
+            log.info("🌐 Base URL: {}", baseUrl);
         } catch (IOException e) {
             throw new StorageException("Could not initialize storage location", e);
         }
