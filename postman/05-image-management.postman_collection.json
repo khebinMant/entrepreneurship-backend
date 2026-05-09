@@ -1,0 +1,925 @@
+{
+  "info": {
+    "_postman_id": "00000005-image-management-emprendia-0001",
+    "name": "05 – Image Management (Todos los servicios)",
+    "description": "Gestión de imágenes para User, Entrepreneurship y Event.\n\n**Endpoints principales:**\n- Upload Image → POST {{shared_url}}/api/images/upload\n- Get Images → GET {{shared_url}}/api/images?entityType=X&entityId=Y\n- Delete Image → DELETE {{shared_url}}/api/images/{id}\n\n**Límites:**\n- USER: máximo 5 imágenes\n- ENTREPRENEURSHIP: máximo 10 imágenes\n- EVENT: máximo 20 imágenes\n- Tamaño máximo por archivo: 5 MB\n- Formatos: JPEG, PNG, WebP, GIF",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "USER Images",
+      "description": "Gestión de imágenes de perfil y galería de usuarios",
+      "item": [
+        {
+          "name": "Upload User Profile Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "pm.test('Tiene imageId', () => pm.expect(r).to.have.property('imageId'));",
+                  "if (r.imageId) pm.environment.set('user_profile_image_id', r.imageId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Selecciona una imagen de perfil (JPEG/PNG, max 5MB)"
+                },
+                {
+                  "key": "entityType",
+                  "value": "USER",
+                  "type": "text"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1",
+                  "type": "text",
+                  "description": "ID del usuario (reemplazar con el real)"
+                },
+                {
+                  "key": "displayOrder",
+                  "value": "0",
+                  "type": "text",
+                  "description": "0 = imagen principal de perfil"
+                },
+                {
+                  "key": "altText",
+                  "value": "Foto de perfil del usuario",
+                  "type": "text"
+                },
+                {
+                  "key": "uploadedByUserId",
+                  "value": "1",
+                  "type": "text",
+                  "description": "ID del usuario que sube (mismo userId)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{shared_url}}/api/images/upload",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "upload"]
+            },
+            "description": "Sube la imagen principal de perfil del usuario (displayOrder=0)"
+          },
+          "response": []
+        },
+        {
+          "name": "Upload User Gallery Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "pm.test('Tiene imageId', () => pm.expect(r).to.have.property('imageId'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                },
+                {
+                  "key": "entityType",
+                  "value": "USER",
+                  "type": "text"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "displayOrder",
+                  "value": "1",
+                  "type": "text",
+                  "description": ">0 para imágenes de galería"
+                },
+                {
+                  "key": "altText",
+                  "value": "Certificado o premio del usuario",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Certificación obtenida en curso X",
+                  "type": "text"
+                },
+                {
+                  "key": "uploadedByUserId",
+                  "value": "1",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{shared_url}}/api/images/upload",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "upload"]
+            },
+            "description": "Sube imágenes adicionales a la galería del usuario (certificados, premios, etc.)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/images?entityType=USER&entityId=1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images"],
+              "query": [
+                {
+                  "key": "entityType",
+                  "value": "USER"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1",
+                  "description": "Reemplazar con ID real del usuario"
+                }
+              ]
+            },
+            "description": "Obtiene todas las imágenes del usuario ordenadas por displayOrder"
+          },
+          "response": []
+        },
+        {
+          "name": "Can User Add More Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Es boolean', () => pm.expect(pm.response.json()).to.be.a('boolean'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/images/can-add-more?entityType=USER&entityId=1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "can-add-more"],
+              "query": [
+                {
+                  "key": "entityType",
+                  "value": "USER",
+                  "description": "Límite: 5 imágenes"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Verifica si el usuario puede agregar más imágenes (límite: 5)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/images/{{user_profile_image_id}}",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "{{user_profile_image_id}}"]
+            },
+            "description": "Elimina una imagen específica del usuario"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "ENTREPRENEURSHIP Images",
+      "description": "Gestión de logo y galería de productos de emprendimientos",
+      "item": [
+        {
+          "name": "Upload Entrepreneurship Logo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "pm.test('Tiene imageId', () => pm.expect(r).to.have.property('imageId'));",
+                  "if (r.imageId) pm.environment.set('entrepreneurship_logo_id', r.imageId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Logo del emprendimiento"
+                },
+                {
+                  "key": "entityType",
+                  "value": "ENTREPRENEURSHIP",
+                  "type": "text"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1",
+                  "type": "text",
+                  "description": "ID del emprendimiento"
+                },
+                {
+                  "key": "displayOrder",
+                  "value": "0",
+                  "type": "text",
+                  "description": "0 = logo principal"
+                },
+                {
+                  "key": "altText",
+                  "value": "Logo de Emprendimiento XYZ",
+                  "type": "text"
+                },
+                {
+                  "key": "uploadedByUserId",
+                  "value": "1",
+                  "type": "text",
+                  "description": "ID del propietario"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{shared_url}}/api/images/upload",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "upload"]
+            },
+            "description": "Sube el logo principal del emprendimiento (displayOrder=0)"
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Product Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "pm.test('Tiene imageId', () => pm.expect(r).to.have.property('imageId'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                },
+                {
+                  "key": "entityType",
+                  "value": "ENTREPRENEURSHIP",
+                  "type": "text"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "displayOrder",
+                  "value": "1",
+                  "type": "text",
+                  "description": ">0 para galería de productos"
+                },
+                {
+                  "key": "altText",
+                  "value": "Producto artesanal hecho a mano",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Producto estrella de nuestro emprendimiento",
+                  "type": "text"
+                },
+                {
+                  "key": "uploadedByUserId",
+                  "value": "1",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{shared_url}}/api/images/upload",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "upload"]
+            },
+            "description": "Sube imágenes de productos, instalaciones, equipo, etc."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Entrepreneurship Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/images?entityType=ENTREPRENEURSHIP&entityId=1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images"],
+              "query": [
+                {
+                  "key": "entityType",
+                  "value": "ENTREPRENEURSHIP"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Obtiene todas las imágenes del emprendimiento"
+          },
+          "response": []
+        },
+        {
+          "name": "Reorder Product Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[1, 3, 2, 5, 4]",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{shared_url}}/api/images/reorder?entityType=ENTREPRENEURSHIP&entityId=1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "reorder"],
+              "query": [
+                {
+                  "key": "entityType",
+                  "value": "ENTREPRENEURSHIP"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Reordena las imágenes. Body es array con imageIds en el orden deseado"
+          },
+          "response": []
+        },
+        {
+          "name": "Can Add More Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Es boolean', () => pm.expect(pm.response.json()).to.be.a('boolean'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/images/can-add-more?entityType=ENTREPRENEURSHIP&entityId=1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "can-add-more"],
+              "query": [
+                {
+                  "key": "entityType",
+                  "value": "ENTREPRENEURSHIP",
+                  "description": "Límite: 10 imágenes"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Verifica si puede agregar más imágenes (límite: 10)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete All Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/images?entityType=ENTREPRENEURSHIP&entityId=1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images"],
+              "query": [
+                {
+                  "key": "entityType",
+                  "value": "ENTREPRENEURSHIP"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Elimina todas las imágenes del emprendimiento"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "EVENT Images",
+      "description": "Gestión de portada y galería de eventos",
+      "item": [
+        {
+          "name": "Upload Event Cover",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "pm.test('Tiene imageId', () => pm.expect(r).to.have.property('imageId'));",
+                  "if (r.imageId) pm.environment.set('event_cover_id', r.imageId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "Portada del evento"
+                },
+                {
+                  "key": "entityType",
+                  "value": "EVENT",
+                  "type": "text"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1",
+                  "type": "text",
+                  "description": "ID del evento"
+                },
+                {
+                  "key": "displayOrder",
+                  "value": "0",
+                  "type": "text",
+                  "description": "0 = portada principal"
+                },
+                {
+                  "key": "altText",
+                  "value": "Portada de Feria de Emprendedores 2026",
+                  "type": "text"
+                },
+                {
+                  "key": "uploadedByUserId",
+                  "value": "1",
+                  "type": "text",
+                  "description": "ID del organizador"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{shared_url}}/api/images/upload",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "upload"]
+            },
+            "description": "Sube la portada principal del evento (displayOrder=0)"
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Event Gallery Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "pm.test('Tiene imageId', () => pm.expect(r).to.have.property('imageId'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                },
+                {
+                  "key": "entityType",
+                  "value": "EVENT",
+                  "type": "text"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "displayOrder",
+                  "value": "1",
+                  "type": "text",
+                  "description": ">0 para galería"
+                },
+                {
+                  "key": "altText",
+                  "value": "Momento destacado del evento",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Exposición de productos artesanales",
+                  "type": "text"
+                },
+                {
+                  "key": "uploadedByUserId",
+                  "value": "1",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{shared_url}}/api/images/upload",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "upload"]
+            },
+            "description": "Sube imágenes adicionales del evento (espacios, actividades, momentos)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Event Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/images?entityType=EVENT&entityId=1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images"],
+              "query": [
+                {
+                  "key": "entityType",
+                  "value": "EVENT"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Obtiene todas las imágenes del evento"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Event Image Count",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Es número', () => pm.expect(pm.response.json()).to.be.a('number'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/images/count?entityType=EVENT&entityId=1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "count"],
+              "query": [
+                {
+                  "key": "entityType",
+                  "value": "EVENT"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Cuenta cuántas imágenes tiene el evento"
+          },
+          "response": []
+        },
+        {
+          "name": "Can Add More Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Es boolean', () => pm.expect(pm.response.json()).to.be.a('boolean'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/images/can-add-more?entityType=EVENT&entityId=1",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "can-add-more"],
+              "query": [
+                {
+                  "key": "entityType",
+                  "value": "EVENT",
+                  "description": "Límite: 20 imágenes"
+                },
+                {
+                  "key": "entityId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Verifica si puede agregar más imágenes (límite: 20)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Image Metadata",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entityType\": \"EVENT\",\n  \"entityId\": 1,\n  \"imageUrl\": \"http://localhost:8084/api/files/events/1/gallery/20260505_123456_abc123.jpg\",\n  \"fileName\": \"20260505_123456_abc123.jpg\",\n  \"displayOrder\": 2,\n  \"altText\": \"Momento actualizado\",\n  \"description\": \"Nueva descripción del momento\",\n  \"widthPx\": 1920,\n  \"heightPx\": 1080,\n  \"fileSizeKb\": 450,\n  \"mimeType\": \"image/jpeg\",\n  \"uploadedByUserId\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{shared_url}}/api/images/{{event_cover_id}}",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "images", "{{event_cover_id}}"]
+            },
+            "description": "Actualiza solo la metadata (no el archivo)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Local Storage Only",
+      "description": "Endpoints que solo funcionan con storage.type=local",
+      "item": [
+        {
+          "name": "GET User Profile Image File",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/files/users/1/profile.jpg",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "files", "users", "1", "profile.jpg"]
+            },
+            "description": "Descarga el archivo de imagen (solo storage local)"
+          },
+          "response": []
+        },
+        {
+          "name": "GET Entrepreneurship Logo File",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/files/entrepreneurships/1/logo.jpg",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "files", "entrepreneurships", "1", "logo.jpg"]
+            },
+            "description": "Descarga el logo (solo storage local)"
+          },
+          "response": []
+        },
+        {
+          "name": "GET Event Cover File",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{shared_url}}/api/files/events/1/cover.jpg",
+              "host": ["{{shared_url}}"],
+              "path": ["api", "files", "events", "1", "cover.jpg"]
+            },
+            "description": "Descarga la portada (solo storage local)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+
