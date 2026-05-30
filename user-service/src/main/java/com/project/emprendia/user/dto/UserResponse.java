@@ -15,4 +15,8 @@ public class UserResponse {
     private String profilePictureUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    // Imagen de perfil desde shared-service
+    private String imageUrl;
+    private Long imageId;
 }

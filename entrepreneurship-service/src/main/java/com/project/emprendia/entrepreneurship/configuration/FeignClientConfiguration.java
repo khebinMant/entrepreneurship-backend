@@ -1,7 +1,6 @@
 package com.project.emprendia.entrepreneurship.configuration;
 
 import feign.RequestInterceptor;
-import feign.RequestTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,21 +18,17 @@ public class FeignClientConfiguration {
 
     @Bean
     public RequestInterceptor requestTokenBearerInterceptor() {
-        return new RequestInterceptor() {
-            @Override
-            public void apply(RequestTemplate requestTemplate) {
-                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return requestTemplate -> {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-                if (authentication instanceof JwtAuthenticationToken) {
-                    JwtAuthenticationToken jwtAuth = (JwtAuthenticationToken) authentication;
-                    Jwt jwt = jwtAuth.getToken();
-                    String tokenValue = jwt.getTokenValue();
+            if (authentication instanceof JwtAuthenticationToken jwtAuth) {
+                Jwt jwt = jwtAuth.getToken();
+                String tokenValue = jwt.getTokenValue();
 
-                    log.debug("Propagando token JWT a Feign Client");
-                    requestTemplate.header("Authorization", "Bearer " + tokenValue);
-                } else {
-                    log.debug("No hay autenticación JWT disponible para propagar");
-                }
+                log.debug("Propagando token JWT a Feign Client");
+                requestTemplate.header("Authorization", "Bearer " + tokenValue);
+            } else {
+                log.debug("No hay autenticación JWT disponible para propagar");
             }
         };
     }

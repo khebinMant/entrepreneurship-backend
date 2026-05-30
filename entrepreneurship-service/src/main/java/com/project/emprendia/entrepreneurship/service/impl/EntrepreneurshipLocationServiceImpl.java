@@ -29,7 +29,7 @@ public class EntrepreneurshipLocationServiceImpl implements EntrepreneurshipLoca
 
     @Override
     public List<EntrepreneurshipLocationResponse> findByEntrepreneurshipId(Long entrepreneurshipId) {
-        return locationRepository.findByEntrepreneurship_EntrepreneurshipId(entrepreneurshipId)
+        return locationRepository.findByEntrepreneurshipEntrepreneurshipId(entrepreneurshipId)
             .stream()
             .map(this::toResponse)
             .toList();

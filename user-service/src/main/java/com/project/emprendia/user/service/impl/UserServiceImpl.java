@@ -1,5 +1,6 @@
 package com.project.emprendia.user.service.impl;
 
+import com.project.emprendia.user.client.SharedServiceClient;
 import com.project.emprendia.user.domain.AppUser;
 import com.project.emprendia.user.dto.UserRequest;
 import com.project.emprendia.user.dto.UserResponse;
@@ -9,11 +10,14 @@ import com.project.emprendia.user.mapping.mapper.UserMapper;
 import com.project.emprendia.user.repository.UserRepository;
 import com.project.emprendia.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -21,26 +25,34 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final SharedServiceClient sharedServiceClient;
 
     @Override
     public List<UserResponse> findAll() {
-        return userRepository.findAll().stream()
+        List<UserResponse> users = userRepository.findAll().stream()
             .map(userMapper::toResponse)
             .toList();
+        
+        users.forEach(this::enrichWithProfileImage);
+        return users;
     }
 
     @Override
     public UserResponse findById(Long id) {
         AppUser user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User", id));
-        return userMapper.toResponse(user);
+        UserResponse response = userMapper.toResponse(user);
+        enrichWithProfileImage(response);
+        return response;
     }
 
     @Override
     public UserResponse findByKeycloakId(String keycloakId) {
         AppUser user = userRepository.findByKeycloakId(keycloakId)
             .orElseThrow(() -> new ResourceNotFoundException("User with keycloakId: " + keycloakId));
-        return userMapper.toResponse(user);
+        UserResponse response = userMapper.toResponse(user);
+        enrichWithProfileImage(response);
+        return response;
     }
 
     @Override
@@ -69,5 +81,38 @@ public class UserServiceImpl implements UserService {
             throw new ResourceNotFoundException("User", id);
         }
         userRepository.deleteById(id);
+    }
+
+    /**
+     * Enriquecer el response con la imagen de perfil del usuario (displayOrder = 0)
+     */
+    private void enrichWithProfileImage(UserResponse response) {
+        try {
+            List<Map<String, Object>> images = sharedServiceClient.getImagesForEntity(
+                "USER", 
+                response.getUserId()
+            );
+            
+            // Buscar la imagen con displayOrder = 0 (foto de perfil principal)
+            images.stream()
+                .filter(img -> {
+                    Object displayOrder = img.get("displayOrder");
+                    return displayOrder != null && 
+                           (displayOrder instanceof Integer && (Integer) displayOrder == 0);
+                })
+                .findFirst()
+                .ifPresent(profileImage -> {
+                    response.setImageUrl((String) profileImage.get("imageUrl"));
+                    Object imageId = profileImage.get("imageId");
+                    if (imageId instanceof Number) {
+                        response.setImageId(((Number) imageId).longValue());
+                    }
+                });
+            
+        } catch (Exception e) {
+            log.warn("Error al obtener imagen para usuario {}: {}", 
+                response.getUserId(), e.getMessage());
+            // No fallar si no se puede obtener la imagen
+        }
     }
 }

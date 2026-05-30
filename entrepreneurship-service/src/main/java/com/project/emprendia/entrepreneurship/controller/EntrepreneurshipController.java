@@ -5,6 +5,9 @@ import com.project.emprendia.entrepreneurship.dto.EntrepreneurshipResponse;
 import com.project.emprendia.entrepreneurship.service.EntrepreneurshipService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,12 +37,26 @@ public class EntrepreneurshipController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<EntrepreneurshipResponse>> search(
+    public ResponseEntity<?> search(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Boolean isPhysical,
-            @RequestParam(required = false) Boolean isDigital) {
-        return ResponseEntity.ok(entrepreneurshipService.search(name, categoryId, isPhysical, isDigital));
+            @RequestParam(required = false) Boolean isDigital,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+
+        // Si se proporcionan parámetros de paginación, retornar Page
+        if (page != null && size != null) {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<EntrepreneurshipResponse> result = entrepreneurshipService.searchPaginated(
+                name, categoryId, isPhysical, isDigital, pageable);
+            return ResponseEntity.ok(result);
+        }
+
+        // Si no hay paginación, retornar lista completa (comportamiento existente)
+        List<EntrepreneurshipResponse> result = entrepreneurshipService.search(
+            name, categoryId, isPhysical, isDigital);
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping

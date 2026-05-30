@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 public class EventInvitationResponse {
     private Long invitationId;
     private Long eventId;
+    private String eventName;
     private Long entrepreneurshipId;
     private Long eventSpaceId;
     private Long invitationStatusId;

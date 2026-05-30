@@ -25,7 +25,7 @@ public class EntrepreneurshipPortalServiceImpl implements EntrepreneurshipPortal
 
     @Override
     public EntrepreneurshipPortalResponse findByEntrepreneurshipId(Long entrepreneurshipId) {
-        return portalRepository.findByEntrepreneurship_EntrepreneurshipId(entrepreneurshipId)
+        return portalRepository.findByEntrepreneurshipEntrepreneurshipId(entrepreneurshipId)
             .map(this::toResponse)
             .orElseThrow(() -> new ResourceNotFoundException("Portal not found for entrepreneurship: " + entrepreneurshipId));
     }

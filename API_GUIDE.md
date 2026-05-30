@@ -126,14 +126,26 @@ Todos los demás requieren `Authorization: Bearer {{access_token}}`
 
 #### Users
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/api/v1/users` | Listar todos |
-| GET | `/api/v1/users/{id}` | Por ID |
-| GET | `/api/v1/users/keycloak/{keycloakId}` | Por Keycloak ID |
-| POST | `/api/v1/users` | Crear |
-| PUT | `/api/v1/users/{id}` | Actualizar |
-| DELETE | `/api/v1/users/{id}` | Eliminar |
+| Método | Endpoint | Descripción | ⭐ Incluye Imagen |
+|--------|----------|-------------|------------------|
+| GET | `/api/v1/users` | Listar todos | ✅ |
+| GET | `/api/v1/users/{id}` | Por ID | ✅ |
+| GET | `/api/v1/users/keycloak/{keycloakId}` | Por Keycloak ID | ✅ |
+| POST | `/api/v1/users` | Crear | ❌ |
+| PUT | `/api/v1/users/{id}` | Actualizar | ❌ |
+| DELETE | `/api/v1/users/{id}` | Eliminar | ❌ |
+
+**Campos de Respuesta con Imagen**:
+```json
+{
+  "userId": 1,
+  "keycloakId": "uuid-123",
+  "firstName": "Juan",
+  "lastName": "Pérez",
+  "imageUrl": "http://localhost:8084/api/files/users/1/profile.jpg",
+  "imageId": 3
+}
+```
 
 #### User Contacts
 
@@ -171,21 +183,43 @@ Todos los demás requieren `Authorization: Bearer {{access_token}}`
 
 #### Entrepreneurships
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/api/v1/entrepreneurships` | Listar todos |
-| GET | `/api/v1/entrepreneurships/{id}` | Por ID |
-| GET | `/api/v1/entrepreneurships/user/{userId}` | Por usuario |
-| GET | `/api/v1/entrepreneurships/search` | Búsqueda con filtros |
-| POST | `/api/v1/entrepreneurships` | Crear |
-| PUT | `/api/v1/entrepreneurships/{id}` | Actualizar |
-| DELETE | `/api/v1/entrepreneurships/{id}` | Eliminar |
+| Método | Endpoint | Descripción | ⭐ Incluye Imagen | 🔢 Paginado |
+|--------|----------|-------------|------------------|-------------|
+| GET | `/api/v1/entrepreneurships` | Listar todos | ❌ | ❌ |
+| GET | `/api/v1/entrepreneurships/{id}` | Por ID | ❌ | ❌ |
+| GET | `/api/v1/entrepreneurships/user/{userId}` | Por usuario | ✅ | ❌ |
+| GET | `/api/v1/entrepreneurships/search` | Búsqueda con filtros | ✅ | ✅ Opcional |
+| POST | `/api/v1/entrepreneurships` | Crear | ❌ | ❌ |
+| PUT | `/api/v1/entrepreneurships/{id}` | Actualizar | ❌ | ❌ |
+| DELETE | `/api/v1/entrepreneurships/{id}` | Eliminar | ❌ | ❌ |
 
 **Filtros de búsqueda:**
-- `name` (String)
-- `categoryId` (Long)
-- `isPhysical` (Boolean)
-- `isDigital` (Boolean)
+- `name` (String) - Búsqueda parcial por nombre
+- `categoryId` (Long) - Filtro por categoría
+- `isPhysical` (Boolean) - Filtro por presencia física
+- `isDigital` (Boolean) - Filtro por presencia digital
+- `page` (Integer) - Número de página (opcional, para paginación)
+- `size` (Integer) - Tamaño de página (opcional, para paginación)
+
+**Ejemplos**:
+```bash
+# Sin paginación (retorna List<>)
+GET /api/v1/entrepreneurships/search?name=panaderia&categoryId=1
+
+# Con paginación (retorna Page<>)
+GET /api/v1/entrepreneurships/search?name=panaderia&page=0&size=10
+```
+
+**Campos de Respuesta con Imagen**:
+```json
+{
+  "entrepreneurshipId": 1,
+  "name": "Panadería Artesanal",
+  "categoryName": "Alimentos",
+  "imageUrl": "http://localhost:8084/api/files/entrepreneurships/1/logo.jpg",
+  "imageId": 5
+}
+```
 
 #### Categories
 
@@ -204,22 +238,33 @@ Todos los demás requieren `Authorization: Bearer {{access_token}}`
 
 #### Events
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/api/v1/events` | Listar todos |
-| GET | `/api/v1/events/{id}` | Por ID |
-| GET | `/api/v1/events/creator/{userId}` | Por creador |
-| GET | `/api/v1/events/search` | Búsqueda con filtros |
-| POST | `/api/v1/events` | Crear |
-| PUT | `/api/v1/events/{id}` | Actualizar |
-| DELETE | `/api/v1/events/{id}` | Eliminar |
+| Método | Endpoint | Descripción | ⭐ Incluye Imagen |
+|--------|----------|-------------|------------------|
+| GET | `/api/v1/events` | Listar todos | ✅ |
+| GET | `/api/v1/events/{id}` | Por ID | ✅ |
+| GET | `/api/v1/events/creator/{userId}` | Por creador | ✅ |
+| GET | `/api/v1/events/search` | Búsqueda con filtros | ✅ |
+| POST | `/api/v1/events` | Crear | ❌ |
+| PUT | `/api/v1/events/{id}` | Actualizar | ❌ |
+| DELETE | `/api/v1/events/{id}` | Eliminar | ❌ |
 
 **Filtros de búsqueda:**
 - `name` (String)
 - `eventTypeId` (Long)
 - `eventVisibilityId` (Long)
-- `fromDate` (LocalDate)
-- `toDate` (LocalDate)
+- `fromDate` (LocalDateTime)
+- `toDate` (LocalDateTime)
+
+**Campos de Respuesta con Imagen**:
+```json
+{
+  "eventId": 1,
+  "name": "Feria de Emprendedores 2026",
+  "description": "Gran feria anual",
+  "imageUrl": "http://localhost:8084/api/files/events/1/cover.jpg",
+  "imageId": 7
+}
+```
 
 #### Event Spaces
 
@@ -361,7 +406,7 @@ Form-data: file, entityType=ENTREPRENEURSHIP, entityId=1, displayOrder=1
 GET {{shared_url}}/api/images?entityType=ENTREPRENEURSHIP&entityId=1
 ```
 
-### 3. Crear Evento
+### 3. Crear Evento con Invitaciones
 
 ```bash
 # 1. Crear evento
@@ -380,8 +425,13 @@ Body: {
   "cityId": 1,
   "addressLine": "Centro de Convenciones"
 }
+Response: { "eventId": 1 }
 
-# 2. Crear espacio
+# 2. Subir imagen de portada
+POST {{shared_url}}/api/images/upload
+Form-data: file, entityType=EVENT, entityId=1, displayOrder=0
+
+# 3. Crear espacios/stands
 POST {{event_url}}/api/v1/event-spaces
 Body: {
   "eventId": 1,
@@ -389,7 +439,14 @@ Body: {
   "isAvailable": true
 }
 
-# 3. Invitar emprendimiento
+POST {{event_url}}/api/v1/event-spaces
+Body: {
+  "eventId": 1,
+  "spaceCode": "A-02",
+  "isAvailable": true
+}
+
+# 4. Invitar emprendimientos (estado PENDING)
 POST {{event_url}}/api/v1/event-invitations
 Body: {
   "eventId": 1,
@@ -397,6 +454,63 @@ Body: {
   "eventSpaceId": 1,
   "invitationStatusId": 1
 }
+
+# 5. Consultar invitaciones pendientes
+GET {{event_url}}/api/v1/event-invitations/event/1?statusId=1
+
+# 6. Emprendimiento acepta invitación
+PATCH {{event_url}}/api/v1/event-invitations/1/status?statusId=2
+
+# 7. Consultar participantes confirmados
+GET {{event_url}}/api/v1/event-participants/event/1?statusId=2
+```
+
+### 4. Gestionar Información de Emprendimiento
+
+```bash
+# 1. Agregar ubicación física
+POST {{entrepreneurship_url}}/api/v1/entrepreneurship-locations
+Body: {
+  "entrepreneurshipId": 1,
+  "countryId": 1,
+  "provinceId": 2,
+  "cityId": 15,
+  "parishId": 100,
+  "addressLine": "Av. Principal 123",
+  "latitude": -0.123456,
+  "longitude": -78.654321
+}
+
+# 2. Agregar redes sociales
+POST {{entrepreneurship_url}}/api/v1/entrepreneurship-social-links
+Body: {
+  "entrepreneurshipId": 1,
+  "socialPlatformId": 1,
+  "url": "https://facebook.com/mi.emprendimiento"
+}
+
+POST {{entrepreneurship_url}}/api/v1/entrepreneurship-social-links
+Body: {
+  "entrepreneurshipId": 1,
+  "socialPlatformId": 2,
+  "url": "https://instagram.com/mi_emprendimiento"
+}
+
+# 3. Crear portal web
+POST {{entrepreneurship_url}}/api/v1/entrepreneurship-portals
+Body: {
+  "entrepreneurshipId": 1,
+  "subdomain": "mi-emprendimiento",
+  "themeId": 1,
+  "isActive": true
+}
+
+# 4. Consultar toda la información
+GET {{entrepreneurship_url}}/api/v1/entrepreneurships/1
+GET {{entrepreneurship_url}}/api/v1/entrepreneurship-locations/entrepreneurship/1
+GET {{entrepreneurship_url}}/api/v1/entrepreneurship-social-links/entrepreneurship/1
+GET {{entrepreneurship_url}}/api/v1/entrepreneurship-portals/entrepreneurship/1
+GET {{shared_url}}/api/images?entityType=ENTREPRENEURSHIP&entityId=1
 ```
 
 ---
@@ -504,8 +618,174 @@ Ejecutar colección completa: Collection → Run
 
 ---
 
+## 🆕 Changelog - v3.2 (29 Mayo 2026)
+
+### ✨ Nuevas Funcionalidades
+
+#### 1. Gestión Completa de Invitaciones a Eventos
+
+**Event Service** ahora incluye flujo completo de invitaciones:
+- ✅ POST `/api/v1/event-invitations` - Enviar invitación a emprendimiento
+- ✅ GET `/api/v1/event-invitations/event/{eventId}` - Listar invitaciones
+- ✅ GET con filtro `?statusId={id}` - Filtrar por PENDING/ACCEPTED/REJECTED
+- ✅ PATCH `/api/v1/event-invitations/{id}/status` - Actualizar estado
+- ✅ DELETE `/api/v1/event-invitations/{id}` - Eliminar invitación
+- ✅ Validación automática de existencia de emprendimiento (llamada a entrepreneurship-service)
+- ✅ Validación de invitaciones duplicadas
+
+#### 2. CRUD de Espacios de Evento
+
+- ✅ GET `/api/v1/event-spaces/event/{eventId}` - Listar espacios/stands
+- ✅ POST `/api/v1/event-spaces` - Crear espacio
+- ✅ PUT `/api/v1/event-spaces/{id}` - Actualizar espacio
+- ✅ DELETE `/api/v1/event-spaces/{id}` - Eliminar espacio
+
+#### 3. Consulta de Participantes Confirmados
+
+- ✅ GET `/api/v1/event-participants/event/{eventId}` - Listar participantes
+- ✅ Filtro por estado de participación
+- ✅ Incluye información de evento y emprendimiento
+
+#### 4. CRUD de Ubicaciones de Emprendimiento
+
+**Entrepreneurship Service** ahora gestiona ubicaciones físicas:
+- ✅ POST `/api/v1/entrepreneurship-locations` - Crear ubicación con GPS
+- ✅ GET `/api/v1/entrepreneurship-locations/entrepreneurship/{id}` - Listar ubicaciones
+- ✅ PUT `/api/v1/entrepreneurship-locations/{id}` - Actualizar ubicación
+- ✅ DELETE `/api/v1/entrepreneurship-locations/{id}` - Eliminar ubicación
+
+#### 5. CRUD de Redes Sociales
+
+- ✅ POST `/api/v1/entrepreneurship-social-links` - Agregar red social
+- ✅ GET `/api/v1/entrepreneurship-social-links/entrepreneurship/{id}` - Listar redes
+- ✅ PUT `/api/v1/entrepreneurship-social-links/{id}` - Actualizar red social
+- ✅ DELETE `/api/v1/entrepreneurship-social-links/{id}` - Eliminar red social
+
+#### 6. CRUD de Portales Web Personalizados
+
+- ✅ POST `/api/v1/entrepreneurship-portals` - Crear portal con subdomain único
+- ✅ GET `/api/v1/entrepreneurship-portals/entrepreneurship/{id}` - Obtener portal
+- ✅ PUT `/api/v1/entrepreneurship-portals/{id}` - Actualizar portal
+- ✅ DELETE `/api/v1/entrepreneurship-portals/{id}` - Eliminar portal
+- ✅ Validación de subdomain único en toda la plataforma
+
+### 🔧 Mejoras Técnicas
+
+#### Eliminación en Cascada
+
+**Event Service**:
+- ✅ Al eliminar un evento, se eliminan automáticamente espacios, invitaciones y participantes
+
+**Entrepreneurship Service**:
+- ✅ Al eliminar un emprendimiento, se eliminan automáticamente ubicaciones, redes sociales y portal
+
+#### Estados de Invitación
+
+Los estados se gestionan mediante catálogos en shared-service:
+- **INVITATION_STATUS**: PENDING (1), ACCEPTED (2), REJECTED (3)
+- **EVENT_PARTICIPATION_STATUS**: INVITED (1), ACCEPTED (2), REJECTED (3)
+
+#### Documentación Swagger/OpenAPI
+
+- ✅ Todos los nuevos endpoints documentados con @Tag, @Operation, @Parameter
+- ✅ Swagger UI disponible en:
+  - Event Service: http://localhost:8083/swagger-ui.html
+  - Entrepreneurship Service: http://localhost:8082/swagger-ui.html
+
+---
+
+## 🆕 Changelog - v3.1 (29 Mayo 2026)
+
+### ✨ Nuevas Funcionalidades
+
+#### 1. Integración Automática de Imágenes
+
+Los servicios **user-service** y **entrepreneurship-service** ahora incluyen automáticamente las imágenes en sus respuestas:
+
+**User Service**:
+- ✅ GET `/api/v1/users` - Incluye `imageUrl` e `imageId`
+- ✅ GET `/api/v1/users/{id}` - Incluye foto de perfil
+- ✅ GET `/api/v1/users/keycloak/{keycloakId}` - Incluye foto de perfil
+
+**Entrepreneurship Service**:
+- ✅ GET `/api/v1/entrepreneurships/user/{userId}` - Incluye logo
+- ✅ GET `/api/v1/entrepreneurships/search` - Incluye logo
+
+**Event Service**:
+- ✅ GET `/api/v1/events` - Incluye portada
+- ✅ GET `/api/v1/events/{id}` - Incluye portada
+- ✅ GET `/api/v1/events/creator/{userId}` - Incluye portada
+- ✅ GET `/api/v1/events/search` - Incluye portada
+
+#### 2. Paginación en Búsqueda de Emprendimientos
+
+El endpoint `/search` ahora soporta paginación opcional:
+
+```bash
+# Sin paginación (comportamiento anterior - compatible)
+GET /api/v1/entrepreneurships/search?name=panaderia
+→ Retorna: List<EntrepreneurshipResponse>
+
+# Con paginación (nuevo)
+GET /api/v1/entrepreneurships/search?name=panaderia&page=0&size=10
+→ Retorna: Page<EntrepreneurshipResponse> con metadatos
+```
+
+### 🔧 Mejoras Técnicas
+
+#### Propagación Automática de JWT
+
+Se implementó `FeignClientConfiguration` en los tres servicios (user, entrepreneurship, event) para:
+- ✅ Propagar automáticamente el token JWT a llamadas entre microservicios
+- ✅ Solucionar problema de autenticación 401 en llamadas a shared-service
+- ✅ Usar Circuit Breaker para resiliencia
+
+#### Comportamiento de Fallback
+
+Si shared-service no responde:
+- ✅ No se rompe el servicio principal
+- ✅ `imageUrl` e `imageId` serán `null`
+- ✅ El frontend puede mostrar imagen por defecto
+
+### 📊 Respuestas con Imágenes
+
+**UserResponse**:
+```json
+{
+  "userId": 1,
+  "firstName": "Juan",
+  "lastName": "Pérez",
+  "imageUrl": "http://localhost:8084/api/files/users/1/profile.jpg",
+  "imageId": 3
+}
+```
+
+**EntrepreneurshipResponse**:
+```json
+{
+  "entrepreneurshipId": 1,
+  "name": "Panadería Artesanal",
+  "imageUrl": "http://localhost:8084/api/files/entrepreneurships/1/logo.jpg",
+  "imageId": 5
+}
+```
+
+**EventResponse**:
+```json
+{
+  "eventId": 1,
+  "name": "Feria de Emprendedores 2026",
+  "imageUrl": "http://localhost:8084/api/files/events/1/cover.jpg",
+  "imageId": 7
+}
+```
+
+**Nota**: Las imágenes con `displayOrder=0` son las principales (foto de perfil / logo / portada).
+
+---
+
 **Autor**: Kevin Guachagmira  
-**Email**: kguachag@pichincha.com  
+**Email**: mantillagka@gmail.com  
 **Proyecto**: Plataforma Emprendia - Tesis NIBE  
-**Versión**: 3.0 | Mayo 8, 2026
+**Versión**: 3.1 | Mayo 29, 2026
 

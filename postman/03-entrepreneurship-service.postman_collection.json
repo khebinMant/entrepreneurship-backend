@@ -280,6 +280,391 @@
       ]
     },
     {
+      "name": "Locations",
+      "item": [
+        {
+          "name": "GET Ubicaciones por emprendimiento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-locations/entrepreneurship/{{last_entrepreneurship_id}}",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurship-locations", "entrepreneurship", "{{last_entrepreneurship_id}}"]
+            },
+            "description": "Lista todas las ubicaciones físicas de un emprendimiento"
+          },
+          "response": []
+        },
+        {
+          "name": "GET Ubicación por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-locations/1",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurship-locations", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Crear ubicación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('last_location_id', response.locationId);",
+                  "    console.log('✅ Ubicación creada con ID:', response.locationId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entrepreneurshipId\": {{last_entrepreneurship_id}},\n  \"countryId\": 1,\n  \"provinceId\": 2,\n  \"cityId\": 15,\n  \"parishId\": 100,\n  \"addressLine\": \"Av. Principal 123 y Secundaria, Edificio Central\",\n  \"latitude\": -0.123456,\n  \"longitude\": -78.654321\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-locations",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurship-locations"]
+            },
+            "description": "Crea una nueva ubicación física con coordenadas GPS"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Actualizar ubicación",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entrepreneurshipId\": {{last_entrepreneurship_id}},\n  \"countryId\": 1,\n  \"provinceId\": 2,\n  \"cityId\": 15,\n  \"parishId\": 101,\n  \"addressLine\": \"Av. Actualizada 456\",\n  \"latitude\": -0.234567,\n  \"longitude\": -78.765432\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-locations/{{last_location_id}}",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurship-locations", "{{last_location_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Eliminar ubicación",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-locations/1",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurship-locations", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Social Links",
+      "item": [
+        {
+          "name": "GET Redes sociales por emprendimiento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-social-links/entrepreneurship/{{last_entrepreneurship_id}}",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurship-social-links", "entrepreneurship", "{{last_entrepreneurship_id}}"]
+            },
+            "description": "Lista todas las redes sociales de un emprendimiento"
+          },
+          "response": []
+        },
+        {
+          "name": "GET Red social por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-social-links/1",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurship-social-links", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Agregar Facebook",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    console.log('✅ Red social agregada con ID:', response.socialLinkId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entrepreneurshipId\": {{last_entrepreneurship_id}},\n  \"socialPlatformId\": 1,\n  \"url\": \"https://facebook.com/mi.emprendimiento\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-social-links",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurship-social-links"]
+            },
+            "description": "Agrega Facebook (socialPlatformId = 1)"
+          },
+          "response": []
+        },
+        {
+          "name": "POST Agregar Instagram",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entrepreneurshipId\": {{last_entrepreneurship_id}},\n  \"socialPlatformId\": 2,\n  \"url\": \"https://instagram.com/mi_emprendimiento\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-social-links",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurship-social-links"]
+            },
+            "description": "Agrega Instagram (socialPlatformId = 2)"
+          },
+          "response": []
+        },
+        {
+          "name": "POST Agregar WhatsApp",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entrepreneurshipId\": {{last_entrepreneurship_id}},\n  \"socialPlatformId\": 3,\n  \"url\": \"https://wa.me/593987654321\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-social-links",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurship-social-links"]
+            },
+            "description": "Agrega WhatsApp (socialPlatformId = 3)"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Actualizar red social",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entrepreneurshipId\": {{last_entrepreneurship_id}},\n  \"socialPlatformId\": 1,\n  \"url\": \"https://facebook.com/nuevo.perfil\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-social-links/1",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurship-social-links", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Eliminar red social",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-social-links/1",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurship-social-links", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Portals",
+      "item": [
+        {
+          "name": "GET Portal por emprendimiento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 o 404', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-portals/entrepreneurship/{{last_entrepreneurship_id}}",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurship-portals", "entrepreneurship", "{{last_entrepreneurship_id}}"]
+            },
+            "description": "Obtiene el portal web del emprendimiento (único por emprendimiento)"
+          },
+          "response": []
+        },
+        {
+          "name": "GET Portal por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-portals/1",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurship-portals", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Crear portal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('last_portal_id', response.portalId);",
+                  "    console.log('✅ Portal creado con ID:', response.portalId);",
+                  "    console.log('🌐 Subdomain:', response.subdomain);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entrepreneurshipId\": {{last_entrepreneurship_id}},\n  \"subdomain\": \"mi-emprendimiento-unico\",\n  \"themeId\": 1,\n  \"isActive\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-portals",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurship-portals"]
+            },
+            "description": "Crea portal web con subdomain único (ej: mi-emprendimiento.emprendia.com)"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Actualizar portal",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"entrepreneurshipId\": {{last_entrepreneurship_id}},\n  \"subdomain\": \"nuevo-subdomain\",\n  \"themeId\": 2,\n  \"isActive\": false\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-portals/{{last_portal_id}}",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurship-portals", "{{last_portal_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Eliminar portal",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-portals/1",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurship-portals", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Health Check",
       "item": [
         {

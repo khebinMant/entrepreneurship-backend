@@ -84,6 +84,10 @@ public class Event {
     @Builder.Default
     private List<EventInvitation> invitations = new ArrayList<>();
 
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<EventEntrepreneurshipParticipant> participants = new ArrayList<>();
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

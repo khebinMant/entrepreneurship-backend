@@ -16,7 +16,7 @@ public class EventParticipantResponse {
     private Long eventId;
     private String eventName;
     private Long entrepreneurshipId;
-    private String entrepreneurshipName;
+    private EntrepreneurshipBasicResponse entrepreneurship;
     private String spaceCode;
     private Long participationStatusId;
     private String participationStatusName;

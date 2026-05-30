@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "00000004-event-service-emprendia-0005",
     "name": "04 – Event Service (Puerto 8083)",
-    "description": "Gestión de eventos y ferias de la plataforma Emprendia.\n\nTodos los endpoints requieren JWT válido.\n\nBase URL: {{event_url}} = http://localhost:8083\n\nCampos del body (EventRequest):\n- createdByUserId (Long, requerido): ID del usuario creador\n- name (String, max 150, requerido): Nombre del evento\n- description (String, opcional)\n- eventTypeId (Long, requerido): ID del CatalogueValue tipo EVENT_TYPE\n- eventVisibilityId (Long, requerido): ID del CatalogueValue tipo EVENT_VISIBILITY\n- isPaid (Boolean, requerido): Si el evento es pago\n- price (BigDecimal, opcional): Precio si isPaid=true\n- maxAttendees (Integer, opcional): Límite de asistentes\n- maxEntrepreneurships (Integer, opcional): Límite de emprendimientos expositores\n- virtualLink (String, opcional): URL para eventos virtuales\n- startDatetime (LocalDateTime, requerido): ISO-8601 ej: 2026-05-15T09:00:00\n- endDatetime (LocalDateTime, requerido): ISO-8601 ej: 2026-05-15T18:00:00\n- countryId (Long, opcional): ID del CatalogueValue COUNTRY\n- provinceId (Long, opcional): ID del CatalogueValue PROVINCE\n- cityId (Long, opcional): ID del CatalogueValue CITY\n- addressLine (String, opcional): Dirección textual",
+    "description": "Gestión de eventos y ferias de la plataforma Emprendia.\n\nTodos los endpoints requieren JWT válido.\n\nBase URL: {{event_url}} = http://localhost:8083\n\n## FLUJO DE INVITACIONES:\n1. POST /event-invitations → Envía invitación (crea invitation + participant)\n2. PATCH /event-invitations/{id}/status → Aceptar/Rechazar\n   - Si ACCEPTED: Crea espacio automáticamente (A-01, A-02, etc.)\n3. GET /event-participants/event/{id} → Lista emprendimientos del evento\n   - Filtrar por estado: ?statusId=1 (INVITED), 2 (ACCEPTED), 3 (REJECTED)\n\nCampos del body (EventRequest):\n- createdByUserId (Long, requerido): ID del usuario creador\n- name (String, max 150, requerido): Nombre del evento\n- description (String, opcional)\n- eventTypeId (Long, requerido): ID del CatalogueValue tipo EVENT_TYPE\n- eventVisibilityId (Long, requerido): ID del CatalogueValue tipo EVENT_VISIBILITY\n- isPaid (Boolean, requerido): Si el evento es pago\n- price (BigDecimal, opcional): Precio si isPaid=true\n- maxAttendees (Integer, opcional): Límite de asistentes\n- maxEntrepreneurships (Integer, opcional): Límite de emprendimientos expositores\n- virtualLink (String, opcional): URL para eventos virtuales\n- startDatetime (LocalDateTime, requerido): ISO-8601 ej: 2026-05-15T09:00:00\n- endDatetime (LocalDateTime, requerido): ISO-8601 ej: 2026-05-15T18:00:00\n- countryId (Long, opcional): ID del CatalogueValue COUNTRY\n- provinceId (Long, opcional): ID del CatalogueValue PROVINCE\n- cityId (Long, opcional): ID del CatalogueValue CITY\n- addressLine (String, opcional): Dirección textual",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -311,6 +311,483 @@
               "host": ["{{event_url}}"],
               "path": ["api", "v1", "events", "1"]
             }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Event Spaces",
+      "item": [
+        {
+          "name": "GET Espacios por evento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/event-spaces/event/{{last_event_id}}",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "event-spaces", "event", "{{last_event_id}}"]
+            },
+            "description": "Lista todos los espacios/stands de un evento"
+          },
+          "response": []
+        },
+        {
+          "name": "GET Espacio por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/event-spaces/1",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "event-spaces", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Crear espacio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('last_event_space_id', response.eventSpaceId);",
+                  "    console.log('✅ Espacio creado con ID:', response.eventSpaceId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": {{last_event_id}},\n  \"spaceCode\": \"A-01\",\n  \"isAvailable\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{event_url}}/api/v1/event-spaces",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "event-spaces"]
+            },
+            "description": "Crea un nuevo espacio/stand para un evento"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Actualizar espacio",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": {{last_event_id}},\n  \"spaceCode\": \"A-02\",\n  \"isAvailable\": false\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{event_url}}/api/v1/event-spaces/{{last_event_space_id}}",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "event-spaces", "{{last_event_space_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Eliminar espacio",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/event-spaces/1",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "event-spaces", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Event Invitations",
+      "item": [
+        {
+          "name": "GET Invitaciones por evento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/event-invitations/event/{{last_event_id}}",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "event-invitations", "event", "{{last_event_id}}"]
+            },
+            "description": "Lista todas las invitaciones de un evento"
+          },
+          "response": []
+        },
+        {
+          "name": "GET Invitaciones PENDING",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/event-invitations/event/{{last_event_id}}?statusId=1",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "event-invitations", "event", "{{last_event_id}}"],
+              "query": [
+                {
+                  "key": "statusId",
+                  "value": "1",
+                  "description": "1=PENDING, 2=ACCEPTED, 3=REJECTED"
+                }
+              ]
+            },
+            "description": "Filtra invitaciones pendientes"
+          },
+          "response": []
+        },
+        {
+          "name": "GET Invitaciones ACCEPTED",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/event-invitations/event/{{last_event_id}}?statusId=2",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "event-invitations", "event", "{{last_event_id}}"],
+              "query": [
+                { "key": "statusId", "value": "2" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Invitación por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/event-invitations/{{last_invitation_id}}",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "event-invitations", "{{last_invitation_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Enviar invitación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('last_invitation_id', response.invitationId);",
+                  "    console.log('✅ Invitación enviada con ID:', response.invitationId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": {{last_event_id}},\n  \"entrepreneurshipId\": {{last_entrepreneurship_id}},\n  \"eventSpaceId\": {{last_event_space_id}},\n  \"invitationStatusId\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{event_url}}/api/v1/event-invitations",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "event-invitations"]
+            },
+            "description": "Envía invitación a un emprendimiento. Estado inicial: 1=PENDING"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH Aceptar invitación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Estado actualizado a ACCEPTED', () => {",
+                  "    pm.expect(pm.response.json().invitationStatusId).to.equal(2);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/event-invitations/{{last_invitation_id}}/status?statusId=2",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "event-invitations", "{{last_invitation_id}}", "status"],
+              "query": [
+                {
+                  "key": "statusId",
+                  "value": "2",
+                  "description": "2=ACCEPTED"
+                }
+              ]
+            },
+            "description": "Actualiza el estado de la invitación a ACCEPTED"
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH Rechazar invitación",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/event-invitations/{{last_invitation_id}}/status?statusId=3",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "event-invitations", "{{last_invitation_id}}", "status"],
+              "query": [
+                {
+                  "key": "statusId",
+                  "value": "3",
+                  "description": "3=REJECTED"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Eliminar invitación",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/event-invitations/1",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "event-invitations", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Event Participants",
+      "item": [
+        {
+          "name": "GET Todos los participantes del evento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                  "pm.test('Cada participante tiene emprendimiento', () => {",
+                  "    const participants = pm.response.json();",
+                  "    if (participants.length > 0) {",
+                  "        pm.expect(participants[0]).to.have.property('entrepreneurshipId');",
+                  "        pm.expect(participants[0]).to.have.property('participationStatusId');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/event-participants/event/{{last_event_id}}",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "event-participants", "event", "{{last_event_id}}"]
+            },
+            "description": "Lista TODOS los emprendimientos participantes del evento (todos los estados: INVITED, ACCEPTED, REJECTED)"
+          },
+          "response": []
+        },
+        {
+          "name": "GET Participantes INVITED (Pendientes)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Todos tienen estado INVITED', () => {",
+                  "    const participants = pm.response.json();",
+                  "    participants.forEach(p => {",
+                  "        pm.expect(p.participationStatusId).to.equal(1);",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/event-participants/event/{{last_event_id}}?statusId=1",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "event-participants", "event", "{{last_event_id}}"],
+              "query": [
+                {
+                  "key": "statusId",
+                  "value": "1",
+                  "description": "1=INVITED (Pendientes de respuesta)"
+                }
+              ]
+            },
+            "description": "Filtra solo emprendimientos invitados que aún no han respondido"
+          },
+          "response": []
+        },
+        {
+          "name": "GET Participantes ACCEPTED (Confirmados con espacio)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Todos tienen estado ACCEPTED', () => {",
+                  "    const participants = pm.response.json();",
+                  "    participants.forEach(p => {",
+                  "        pm.expect(p.participationStatusId).to.equal(2);",
+                  "    });",
+                  "});",
+                  "pm.test('Participantes confirmados tienen space_code', () => {",
+                  "    const participants = pm.response.json();",
+                  "    if (participants.length > 0) {",
+                  "        pm.expect(participants[0]).to.have.property('spaceCode');",
+                  "        console.log('✅ Space codes asignados:', participants.map(p => p.spaceCode));",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/event-participants/event/{{last_event_id}}?statusId=2",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "event-participants", "event", "{{last_event_id}}"],
+              "query": [
+                {
+                  "key": "statusId",
+                  "value": "2",
+                  "description": "2=ACCEPTED (Confirmados con espacio asignado)"
+                }
+              ]
+            },
+            "description": "Filtra solo emprendimientos confirmados. Estos tienen space_code asignado (A-01, A-02, etc.)"
+          },
+          "response": []
+        },
+        {
+          "name": "GET Participantes REJECTED (Rechazados)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/event-participants/event/{{last_event_id}}?statusId=3",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "event-participants", "event", "{{last_event_id}}"],
+              "query": [
+                {
+                  "key": "statusId",
+                  "value": "3",
+                  "description": "3=REJECTED (Rechazaron la invitación)"
+                }
+              ]
+            },
+            "description": "Filtra solo emprendimientos que rechazaron la invitación"
+          },
+          "response": []
+        },
+        {
+          "name": "GET Participante por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 o 404', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const participant = pm.response.json();",
+                  "    pm.test('Tiene información completa', () => {",
+                  "        pm.expect(participant).to.have.property('eventParticipantId');",
+                  "        pm.expect(participant).to.have.property('entrepreneurshipId');",
+                  "        pm.expect(participant).to.have.property('participationStatusId');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/event-participants/1",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "event-participants", "1"]
+            },
+            "description": "Obtiene detalles de un participante específico por ID"
           },
           "response": []
         }

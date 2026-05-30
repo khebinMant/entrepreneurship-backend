@@ -19,4 +19,8 @@ public class EntrepreneurshipResponse {
     private Boolean isDigital;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // Imagen del logo/principal del emprendimiento
+    private String imageUrl;
+    private Long imageId;
 }

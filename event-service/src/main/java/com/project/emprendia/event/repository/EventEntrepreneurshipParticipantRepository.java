@@ -12,22 +12,20 @@ import java.util.Optional;
 @Repository
 public interface EventEntrepreneurshipParticipantRepository extends JpaRepository<EventEntrepreneurshipParticipant, Long> {
 
-    List<EventEntrepreneurshipParticipant> findByEventId(Long eventId);
+    List<EventEntrepreneurshipParticipant> findByEvent_EventId(Long eventId);
+
+    List<EventEntrepreneurshipParticipant> findByEvent_EventIdAndParticipationStatusId(Long eventId, Long participationStatusId);
 
     List<EventEntrepreneurshipParticipant> findByEntrepreneurshipId(Long entrepreneurshipId);
 
-    Optional<EventEntrepreneurshipParticipant> findByEventIdAndEntrepreneurshipId(
+    Optional<EventEntrepreneurshipParticipant> findByEvent_EventIdAndEntrepreneurshipId(
             Long eventId,
             Long entrepreneurshipId
     );
 
-    boolean existsByEventIdAndEntrepreneurshipId(Long eventId, Long entrepreneurshipId);
+    boolean existsByEvent_EventIdAndEntrepreneurshipId(Long eventId, Long entrepreneurshipId);
 
     @Query("SELECT COUNT(e) FROM EventEntrepreneurshipParticipant e " +
-           "WHERE e.eventId = :eventId")
+           "WHERE e.event.eventId = :eventId")
     long countParticipantsByEventId(@Param("eventId") Long eventId);
-
-    void deleteByEventId(Long eventId);
-
-    void deleteByEntrepreneurshipId(Long entrepreneurshipId);
 }

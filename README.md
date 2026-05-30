@@ -810,3 +810,7 @@ Keycloak Admin → Realm: emprendia → Clients → emprendia-app
 Email: mantillagka@gmail.com  
 Fecha: Mayo 2026  
 Proyecto: Plataforma Emprendia - Tesis NIBE
+
+
+TODO:Al enviar invitaciones no se esta poniendo correctamente el valor de catalogo además deberias de ser por codigo
+al traer los participantes de un evento (que son empredimiento ) también debe de traer las fotos y la informaci´n del empredimiento 

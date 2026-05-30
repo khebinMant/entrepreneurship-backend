@@ -13,7 +13,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "event_entrepreneurship_participant")
+@Table(name = "event_entrepreneurship_participant",
+        uniqueConstraints = @UniqueConstraint(name = "uk_event_entrepreneurship",
+                columnNames = {"event_id", "entrepreneurship_id"}))
 public class EventEntrepreneurshipParticipant {
 
     @Id
@@ -21,8 +23,10 @@ public class EventEntrepreneurshipParticipant {
     @Column(name = "event_participant_id")
     private Long eventParticipantId;
 
-    @Column(name = "event_id", nullable = false)
-    private Long eventId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id", nullable = false,
+            foreignKey = @ForeignKey(name = "fk_participant_event"))
+    private Event event;
 
     @Column(name = "entrepreneurship_id", nullable = false)
     private Long entrepreneurshipId;

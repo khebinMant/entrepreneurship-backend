@@ -9,5 +9,6 @@ import java.util.List;
 @Repository
 public interface EventInvitationRepository extends JpaRepository<EventInvitation, Long> {
     List<EventInvitation> findByEvent_EventId(Long eventId);
+    List<EventInvitation> findByEvent_EventIdAndInvitationStatusId(Long eventId, Long invitationStatusId);
     boolean existsByEvent_EventIdAndEntrepreneurshipId(Long eventId, Long entrepreneurshipId);
 }

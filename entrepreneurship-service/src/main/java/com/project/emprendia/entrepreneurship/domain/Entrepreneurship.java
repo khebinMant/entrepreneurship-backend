@@ -62,6 +62,9 @@ public class Entrepreneurship {
     @Builder.Default
     private List<EntrepreneurshipSocialLink> socialLinks = new ArrayList<>();
 
+    @OneToOne(mappedBy = "entrepreneurship", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private EntrepreneurshipPortal portal;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

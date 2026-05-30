@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(
     name = "entrepreneurship-service",
     url = "${services.entrepreneurship.url}",
-    path = "/api/v1"
+    configuration = com.project.emprendia.event.configuration.FeignClientConfiguration.class
 )
 public interface EntrepreneurshipServiceClient {
 
-    @GetMapping("/entrepreneurships/{id}")
+    @GetMapping("/api/v1/entrepreneurships/{id}")
     @CircuitBreaker(name = "entrepreneurshipService", fallbackMethod = "getEntrepreneurshipByIdFallback")
     EntrepreneurshipBasicResponse getEntrepreneurshipById(@PathVariable Long id);
 

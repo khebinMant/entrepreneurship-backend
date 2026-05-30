@@ -9,28 +9,36 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Feign Client for Shared Service (Catalogues)
+ * Feign Client for Shared Service (Catalogues & Images)
  */
 @FeignClient(
     name = "shared-service",
     url = "${services.shared.url}",
-    path = "/api/v1"
+    configuration = com.project.emprendia.user.configuration.FeignClientConfiguration.class
 )
 public interface SharedServiceClient {
 
-    @GetMapping("/catalogue-values/by-type/{typeCode}")
+    @GetMapping("/api/v1/catalogue-values/by-type/{typeCode}")
     @CircuitBreaker(name = "sharedService", fallbackMethod = "getValuesByTypeFallback")
     List<CatalogueValueResponse> getValuesByType(@PathVariable String typeCode);
 
-    @GetMapping("/catalogue-values/{id}")
+    @GetMapping("/api/v1/catalogue-values/{id}")
     @CircuitBreaker(name = "sharedService", fallbackMethod = "getValueByIdFallback")
     CatalogueValueResponse getValueById(@PathVariable Long id);
 
-    @GetMapping("/catalogue-values/{id}/children")
+    @GetMapping("/api/v1/catalogue-values/{id}/children")
     @CircuitBreaker(name = "sharedService", fallbackMethod = "getChildrenFallback")
     List<CatalogueValueResponse> getChildren(@PathVariable Long id);
+
+    @GetMapping("/api/images")
+    @CircuitBreaker(name = "sharedService", fallbackMethod = "getImagesForEntityFallback")
+    List<Map<String, Object>> getImagesForEntity(
+        @RequestParam("entityType") String entityType,
+        @RequestParam("entityId") Long entityId
+    );
 
     // Fallback methods
     default List<CatalogueValueResponse> getValuesByTypeFallback(String typeCode, Throwable t) {
@@ -46,6 +54,10 @@ public interface SharedServiceClient {
     }
 
     default List<CatalogueValueResponse> getChildrenFallback(Long id, Throwable t) {
+        return Collections.emptyList();
+    }
+
+    default List<Map<String, Object>> getImagesForEntityFallback(String entityType, Long entityId, Throwable t) {
         return Collections.emptyList();
     }
 }

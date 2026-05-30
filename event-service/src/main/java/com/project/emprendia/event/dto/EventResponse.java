@@ -27,4 +27,8 @@ public class EventResponse {
     private Long cityId;
     private String addressLine;
     private LocalDateTime createdAt;
+
+    // Imagen de portada desde shared-service
+    private String imageUrl;
+    private Long imageId;
 }

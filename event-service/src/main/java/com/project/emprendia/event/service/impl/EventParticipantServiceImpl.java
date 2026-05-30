@@ -1,6 +1,8 @@
 package com.project.emprendia.event.service.impl;
 
+import com.project.emprendia.event.client.EntrepreneurshipServiceClient;
 import com.project.emprendia.event.domain.EventEntrepreneurshipParticipant;
+import com.project.emprendia.event.dto.EntrepreneurshipBasicResponse;
 import com.project.emprendia.event.dto.EventParticipantResponse;
 import com.project.emprendia.event.exception.ResourceNotFoundException;
 import com.project.emprendia.event.repository.EventEntrepreneurshipParticipantRepository;
@@ -19,6 +21,7 @@ import java.util.List;
 public class EventParticipantServiceImpl implements EventParticipantService {
 
     private final EventEntrepreneurshipParticipantRepository participantRepository;
+    private final EntrepreneurshipServiceClient entrepreneurshipClient;
 
     @Override
     public List<EventParticipantResponse> findByEventId(Long eventId) {
@@ -46,11 +49,26 @@ public class EventParticipantServiceImpl implements EventParticipantService {
     }
 
     private EventParticipantResponse toResponse(EventEntrepreneurshipParticipant participant) {
+        // Obtener información del emprendimiento
+        EntrepreneurshipBasicResponse entrepreneurship;
+        try {
+            entrepreneurship = entrepreneurshipClient.getEntrepreneurshipById(participant.getEntrepreneurshipId());
+        } catch (Exception e) {
+            log.warn("Could not fetch entrepreneurship {} details: {}",
+                participant.getEntrepreneurshipId(), e.getMessage());
+            // Crear un objeto básico con la información mínima
+            entrepreneurship = EntrepreneurshipBasicResponse.builder()
+                .entrepreneurshipId(participant.getEntrepreneurshipId())
+                .name("N/A")
+                .build();
+        }
+
         return EventParticipantResponse.builder()
             .eventParticipantId(participant.getEventParticipantId())
             .eventId(participant.getEvent().getEventId())
             .eventName(participant.getEvent().getName())
             .entrepreneurshipId(participant.getEntrepreneurshipId())
+            .entrepreneurship(entrepreneurship)
             .spaceCode(participant.getSpaceCode())
             .participationStatusId(participant.getParticipationStatusId())
             .invitedAt(participant.getInvitedAt())

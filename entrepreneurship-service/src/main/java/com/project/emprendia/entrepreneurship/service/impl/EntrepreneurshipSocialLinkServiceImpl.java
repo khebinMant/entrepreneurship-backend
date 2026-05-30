@@ -26,7 +26,7 @@ public class EntrepreneurshipSocialLinkServiceImpl implements EntrepreneurshipSo
 
     @Override
     public List<EntrepreneurshipSocialLinkResponse> findByEntrepreneurshipId(Long entrepreneurshipId) {
-        return socialLinkRepository.findByEntrepreneurship_EntrepreneurshipId(entrepreneurshipId)
+        return socialLinkRepository.findByEntrepreneurshipEntrepreneurshipId(entrepreneurshipId)
             .stream()
             .map(this::toResponse)
             .toList();
