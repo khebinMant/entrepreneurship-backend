@@ -5,6 +5,9 @@ import com.project.emprendia.event.dto.EventResponse;
 import com.project.emprendia.event.service.EventService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,13 +39,24 @@ public class EventController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<EventResponse>> search(
+    public ResponseEntity<?> search(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Long eventTypeId,
             @RequestParam(required = false) Long eventVisibilityId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate) {
-        return ResponseEntity.ok(eventService.search(name, eventTypeId, eventVisibilityId, fromDate, toDate));
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+
+        if (page != null && size != null) {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<EventResponse> result = eventService.searchPaginated(
+                name, eventTypeId, eventVisibilityId, fromDate, toDate, pageable);
+            return ResponseEntity.ok(result);
+        }
+
+        List<EventResponse> result = eventService.search(name, eventTypeId, eventVisibilityId, fromDate, toDate);
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping

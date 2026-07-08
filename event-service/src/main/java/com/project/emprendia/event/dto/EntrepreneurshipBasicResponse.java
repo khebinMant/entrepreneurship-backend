@@ -20,5 +20,7 @@ public class EntrepreneurshipBasicResponse {
     private String logoUrl;
     private Boolean isPhysical;
     private Boolean isDigital;
+    private String imageUrl;
+    private Long imageId;
 }
 

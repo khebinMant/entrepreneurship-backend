@@ -11,6 +11,8 @@ import com.project.emprendia.event.repository.EventRepository;
 import com.project.emprendia.event.service.EventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,6 +70,19 @@ public class EventServiceImpl implements EventService {
 
         events.forEach(this::enrichWithCoverImage);
         return events;
+    }
+
+    @Override
+    public Page<EventResponse> searchPaginated(String name, Long eventTypeId, Long eventVisibilityId,
+                                                LocalDateTime fromDate, LocalDateTime toDate, Pageable pageable) {
+        Page<Event> page = eventQueryRepository.searchPaginated(
+            name, eventTypeId, eventVisibilityId, fromDate, toDate, pageable);
+
+        return page.map(entity -> {
+            EventResponse response = eventMapper.toResponse(entity);
+            enrichWithCoverImage(response);
+            return response;
+        });
     }
 
     @Override

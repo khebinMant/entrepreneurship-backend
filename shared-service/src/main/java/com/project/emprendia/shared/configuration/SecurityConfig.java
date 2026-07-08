@@ -29,6 +29,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .cors(cors -> {})
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -38,6 +39,9 @@ public class SecurityConfig {
                 // Catalogue reads are public – no token required
                 .requestMatchers(HttpMethod.GET, "/api/v1/catalogue-types/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/catalogue-values/**").permitAll()
+                // Image reads are public
+                .requestMatchers(HttpMethod.GET, "/api/images/**").permitAll()
+                .requestMatchers("/api/files/**").permitAll()
                 // Writes are restricted to ADMIN role
                 .requestMatchers(HttpMethod.POST, "/api/v1/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/v1/**").hasRole("ADMIN")

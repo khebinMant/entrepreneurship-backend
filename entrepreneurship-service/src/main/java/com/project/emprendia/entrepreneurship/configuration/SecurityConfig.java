@@ -3,7 +3,7 @@ package com.project.emprendia.entrepreneurship.configuration;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -15,9 +15,11 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 /**
  * Security configuration for the Entrepreneurship Service.
  *
- * Access model:
- *  - GET  /api/v1/** → authenticated (must have valid token)
- *  - POST / PUT / DELETE → authenticated (ownership checked at service layer via @PreAuthorize)
+ * Public endpoints (GET reads):
+ *  - No token required, no JWT validation
+ *
+ * Protected endpoints (POST/PUT/DELETE):
+ *  - JWT token required
  *
  * Zero-trust: validates token independently from any API Gateway.
  */
@@ -26,14 +28,36 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    @Order(1)
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
         http
+            .securityMatcher("/actuator/**",
+                "/api/v1/entrepreneurships/**",
+                "/api/v1/categories/**",
+                "/api/v1/entrepreneurship-locations/**",
+                "/api/v1/entrepreneurship-social-links/**",
+                "/api/v1/entrepreneurship-portals/**")
+            .cors(cors -> {})
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/**").permitAll()
+                .anyRequest().permitAll())
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(authenticationEntryPoint())
+                .accessDeniedHandler(accessDeniedHandler()));
+        return http.build();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .cors(cors -> {})
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
                 .anyRequest().authenticated())
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint(authenticationEntryPoint())
