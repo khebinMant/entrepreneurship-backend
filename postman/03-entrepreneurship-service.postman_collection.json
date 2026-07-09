@@ -665,6 +665,152 @@
       ]
     },
     {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "GET Listar todas las categorías",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/categories",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Obtener categoría por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 o 404', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/categories/1",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "categories", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST Crear categoría",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "pm.test('Tiene categoryId', () => pm.expect(r).to.have.property('categoryId'));",
+                  "if (r.categoryId) pm.environment.set('last_category_id', r.categoryId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tecnología\",\n  \"description\": \"Emprendimientos relacionados con tecnología e innovación\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/categories",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "categories"]
+            },
+            "description": "name es único y obligatorio (max 100 caracteres)."
+          },
+          "response": []
+        },
+        {
+          "name": "PUT Actualizar categoría",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tecnología Actualizada\",\n  \"description\": \"Categoría actualizada de tecnología\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/categories/{{last_category_id}}",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "categories", "{{last_category_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE Eliminar categoría",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/categories/1",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "categories", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Health Check",
       "item": [
         {

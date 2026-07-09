@@ -3,6 +3,8 @@ package com.project.emprendia.entrepreneurship.service.impl;
 import com.project.emprendia.entrepreneurship.domain.Category;
 import com.project.emprendia.entrepreneurship.dto.CategoryRequest;
 import com.project.emprendia.entrepreneurship.dto.CategoryResponse;
+import com.project.emprendia.entrepreneurship.exception.DuplicateResourceException;
+import com.project.emprendia.entrepreneurship.exception.ResourceNotFoundException;
 import com.project.emprendia.entrepreneurship.mapping.CategoryMapper;
 import com.project.emprendia.entrepreneurship.repository.CategoryRepository;
 import com.project.emprendia.entrepreneurship.service.CategoryService;
@@ -37,7 +39,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponse findById(Long id) {
         log.debug("Finding category by id: {}", id);
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Category not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Category", id));
         return categoryMapper.toResponse(category);
     }
 
@@ -46,7 +48,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponse findByName(String name) {
         log.debug("Finding category by name: {}", name);
         Category category = categoryRepository.findByName(name)
-                .orElseThrow(() -> new IllegalArgumentException("Category not found with name: " + name));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with name: " + name));
         return categoryMapper.toResponse(category);
     }
 
@@ -56,7 +58,7 @@ public class CategoryServiceImpl implements CategoryService {
         log.info("Creating new category: {}", request.getName());
 
         if (categoryRepository.existsByName(request.getName())) {
-            throw new IllegalArgumentException("Category already exists with name: " + request.getName());
+            throw new DuplicateResourceException("Category", "name", request.getName());
         }
 
         Category category = categoryMapper.toEntity(request);
@@ -72,12 +74,11 @@ public class CategoryServiceImpl implements CategoryService {
         log.info("Updating category with id: {}", id);
 
         Category existingCategory = categoryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Category not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Category", id));
 
-        // Check if name is being changed and if new name already exists
         if (!existingCategory.getName().equals(request.getName()) &&
                 categoryRepository.existsByName(request.getName())) {
-            throw new IllegalArgumentException("Category already exists with name: " + request.getName());
+            throw new DuplicateResourceException("Category", "name", request.getName());
         }
 
         categoryMapper.updateEntity(request, existingCategory);
@@ -93,11 +94,8 @@ public class CategoryServiceImpl implements CategoryService {
         log.info("Deleting category with id: {}", id);
 
         if (!categoryRepository.existsById(id)) {
-            throw new IllegalArgumentException("Category not found with id: " + id);
+            throw new ResourceNotFoundException("Category", id);
         }
-
-        // TODO: Check if category is being used by any entrepreneurships before deleting
-        // You might want to add a check here or handle it with database constraints
 
         categoryRepository.deleteById(id);
         log.info("Category deleted successfully with id: {}", id);

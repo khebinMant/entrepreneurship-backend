@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "00000002-user-service-emprendia-0003",
     "name": "02 – User Service (Puerto 8081)",
-    "description": "Gestión de usuarios de la plataforma Emprendia.\n\nTodos los endpoints requieren JWT válido (Bearer {{access_token}}).\n\nBase URL: {{user_url}} = http://localhost:8081\n\nCampos del body:\n- keycloakId (String): ID del usuario en Keycloak (claim 'sub' del JWT)\n- firstName (String): Nombre\n- lastName (String): Apellido\n- profilePictureUrl (String, opcional): URL de foto de perfil",
+    "description": "Gestión de usuarios de la plataforma Emprendia.\n\nTodos los endpoints requieren JWT válido (Bearer {{access_token}}).\n\nBase URL: {{user_url}} = http://localhost:8081\n\n⚠️ FLUJO CORRECTO PARA CREAR USUARIO:\n1. Colección 00-Auth-Keycloak > Get Admin Token\n2. Colección 00-Auth-Keycloak > Create User en Keycloak (genera {{keycloak_user_id}})\n3. Luego sí: POST Crear usuario (usa {{keycloak_user_id}} automáticamente)\n\nCampos del body:\n- keycloakId (String): ID del usuario en Keycloak (claim 'sub' del JWT)\n- firstName (String): Nombre\n- lastName (String): Apellido\n- profilePictureUrl (String, opcional): URL de foto de perfil",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -142,7 +142,7 @@
           "response": []
         },
         {
-          "name": "POST Crear usuario",
+          "name": "POST Crear usuario (usar después de Create User en Keycloak)",
           "event": [
             {
               "listen": "test",
@@ -152,8 +152,10 @@
                   "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
                   "const r = pm.response.json();",
                   "pm.test('Tiene id asignado', () => pm.expect(r).to.have.property('id'));",
-                  "// Guardar el ID para usarlo en otras peticiones",
-                  "if (r.id) pm.environment.set('last_user_id', r.id);"
+                  "if (r.id) {",
+                  "    pm.environment.set('last_user_id', r.id);",
+                  "    console.log('✅ Usuario creado en user-service con ID:', r.id);",
+                  "}"
                 ]
               }
             }
@@ -165,7 +167,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"keycloakId\": \"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\",\n  \"firstName\": \"Kevin\",\n  \"lastName\": \"Guachagmira\",\n  \"profilePictureUrl\": null\n}",
+              "raw": "{\n  \"keycloakId\": \"{{keycloak_user_id}}\",\n  \"firstName\": \"Kevin\",\n  \"lastName\": \"Guachagmira\",\n  \"profilePictureUrl\": null\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -173,7 +175,7 @@
               "host": ["{{user_url}}"],
               "path": ["api", "v1", "users"]
             },
-            "description": "El keycloakId debe ser el claim 'sub' del JWT del usuario en Keycloak (UUID). Obtenlo con el endpoint Introspect."
+            "description": "Usa el keycloakId generado por Keycloak (variable {{keycloak_user_id}}).\n\n⚠️ FLUJO CORRECTO:\n1. Ejecuta '00-Auth-Keycloak > Get Admin Token'\n2. Ejecuta '00-Auth-Keycloak > Create User en Keycloak' (guarda {{keycloak_user_id}})\n3. Ejecuta este endpoint para crear el perfil local en user-service"
           },
           "response": []
         },

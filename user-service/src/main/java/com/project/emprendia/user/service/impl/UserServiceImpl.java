@@ -8,6 +8,7 @@ import com.project.emprendia.user.exception.DuplicateResourceException;
 import com.project.emprendia.user.exception.ResourceNotFoundException;
 import com.project.emprendia.user.mapping.mapper.UserMapper;
 import com.project.emprendia.user.repository.UserRepository;
+import com.project.emprendia.user.service.KeycloakAdminService;
 import com.project.emprendia.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final SharedServiceClient sharedServiceClient;
+    private final KeycloakAdminService keycloakAdminService;
 
     @Override
     public List<UserResponse> findAll() {
@@ -58,10 +60,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponse create(UserRequest request) {
-        if (userRepository.existsByKeycloakId(request.getKeycloakId())) {
-            throw new DuplicateResourceException("User", "keycloakId", request.getKeycloakId());
-        }
+        String keycloakId = keycloakAdminService.createUser(request);
+
         AppUser entity = userMapper.toEntity(request);
+        entity.setKeycloakId(keycloakId);
+
         return userMapper.toResponse(userRepository.save(entity));
     }
 

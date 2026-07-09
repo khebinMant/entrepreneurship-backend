@@ -11,6 +11,7 @@ public interface UserMapper {
     UserResponse toResponse(AppUser entity);
 
     @Mapping(target = "userId", ignore = true)
+    @Mapping(target = "keycloakId", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "contacts", ignore = true)

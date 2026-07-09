@@ -45,6 +45,16 @@ services:
   shared:
     url: ${SHARED_SERVICE_URL:http://localhost:8084}
 
+# Keycloak Admin Configuration
+keycloak:
+  admin:
+    server-url: ${KEYCLOAK_ADMIN_URL:http://localhost:8080}
+    username: ${KEYCLOAK_ADMIN_USERNAME:admin}
+    password: ${KEYCLOAK_ADMIN_PASSWORD:admin}
+  realm: ${KEYCLOAK_REALM:emprendia}
+  role:
+    default-role-name: ${KEYCLOAK_DEFAULT_ROLE:comun-user}
+
 # Resilience4j Circuit Breaker
 resilience4j:
   circuitbreaker:

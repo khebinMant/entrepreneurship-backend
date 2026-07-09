@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "00000000-auth-keycloak-emprendia-0001",
     "name": "00 – Auth Keycloak",
-    "description": "Autenticación contra Keycloak. Ejecuta primero 'Login' para guardar el JWT en {{access_token}}. Las demás colecciones usan esa variable automáticamente.\n\n**Prerrequisito Keycloak:**\n- Realm: emprendia\n- Client: emprendia-app\n- Client → Settings → Direct Access Grants: ON\n- Client → Authentication → Client authentication: OFF (public client)",
+    "description": "Autenticación y administración de usuarios contra Keycloak.\n\n**FLUJO RECOMENDADO PARA CREAR USUARIO:**\n1. Login – Obtener JWT (opcional, para probar)\n2. Get Admin Token – Obtener token de admin para la Admin REST API\n3. Create User en Keycloak – Crea el usuario en Keycloak y guarda su ID en {{keycloak_user_id}}\n4. Ir a colección 02-User-Service > POST Crear usuario para crear el perfil local\n\n**Prerrequisito Keycloak:**\n- Realm: emprendia\n- Client: emprendia-app\n- Client → Settings → Direct Access Grants: ON\n- Client → Authentication → Client authentication: OFF (public client)\n- Cliente 'admin-cli' en realm 'master' (viene por defecto)\n- Credenciales de admin configuradas en el environment ({{keycloak_admin_username}} / {{keycloak_admin_password}})",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -160,6 +160,151 @@
           "host": ["{{keycloak_url}}"],
           "path": ["realms", "{{keycloak_realm}}", "protocol", "openid-connect", "logout"]
         }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Admin Token (Master Realm)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "",
+              "pm.test('Admin login exitoso (200)', () => pm.response.to.have.status(200));",
+              "",
+              "if (r.access_token) {",
+              "    pm.environment.set('admin_token', r.access_token);",
+              "    console.log('🔑 Token de admin guardado en {{admin_token}}');",
+              "} else {",
+              "    console.error('❌ No se obtuvo admin_token. Verifica credenciales de admin en el environment.');",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "grant_type", "value": "password", "type": "text" },
+            { "key": "client_id", "value": "admin-cli", "type": "text" },
+            { "key": "username", "value": "{{keycloak_admin_username}}", "type": "text" },
+            { "key": "password", "value": "{{keycloak_admin_password}}", "type": "text" }
+          ]
+        },
+        "url": {
+          "raw": "{{keycloak_url}}/realms/master/protocol/openid-connect/token",
+          "host": ["{{keycloak_url}}"],
+          "path": ["realms", "master", "protocol", "openid-connect", "token"]
+        },
+        "description": "Obtiene un token de administrador usando el cliente 'admin-cli' del realm 'master'. Las credenciales se configuran en las variables {{keycloak_admin_username}} y {{keycloak_admin_password}}. Este token permite usar la Admin REST API de Keycloak."
+      },
+      "response": []
+    },
+    {
+      "name": "Create User en Keycloak + Asignar rol",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+              "",
+              "if (pm.response.code !== 201) {",
+              "    console.error('❌ No se pudo crear el usuario en Keycloak');",
+              "    return;",
+              "}",
+              "",
+              "const location = pm.response.headers.get('Location');",
+              "if (!location) {",
+              "    console.error('❌ No se encontró header Location en la respuesta');",
+              "    return;",
+              "}",
+              "",
+              "const userId = location.split('/').pop();",
+              "pm.environment.set('keycloak_user_id', userId);",
+              "console.log('✅ Usuario creado en Keycloak con ID:', userId);",
+              "",
+              "// --- Asignar rol al usuario ---",
+              "const adminToken = pm.environment.get('admin_token');",
+              "const keycloakUrl = pm.environment.get('keycloak_url');",
+              "const realm = pm.environment.get('keycloak_realm');",
+              "const roleName = pm.environment.get('keycloak_role_name') || 'comun-user';",
+              "",
+              "// 1. Obtener el ID del rol por su nombre",
+              "pm.sendRequest({",
+              "    url: `${keycloakUrl}/admin/realms/${realm}/roles/${roleName}`,",
+              "    method: 'GET',",
+              "    header: { 'Authorization': 'Bearer ' + adminToken }",
+              "}, (err, roleRes) => {",
+              "    if (err || roleRes.code !== 200) {",
+              "        console.warn('⚠️  El rol \"' + roleName + '\" no existe en Keycloak. Créalo manualmente o verifica el nombre.');",
+              "        console.log('➡️  Luego asigna el rol manualmente desde: ' + keycloakUrl + '/admin/master/console/#/realms/' + realm + '/users/' + userId + '/role-mappings');",
+              "        return;",
+              "    }",
+              "",
+              "    const role = roleRes.json();",
+              "    console.log('🔍 Rol encontrado:', role.name, '(' + role.id + ')');",
+              "",
+              "    // 2. Asignar el rol al usuario",
+              "    pm.sendRequest({",
+              "        url: `${keycloakUrl}/admin/realms/${realm}/users/${userId}/role-mappings/realm`,",
+              "        method: 'POST',",
+              "        header: {",
+              "            'Authorization': 'Bearer ' + adminToken,",
+              "            'Content-Type': 'application/json'",
+              "        },",
+              "        body: {",
+              "            mode: 'raw',",
+              "            raw: JSON.stringify([{",
+              "                id: role.id,",
+              "                name: role.name",
+              "            }])",
+              "        }",
+              "    }, (err2, assignRes) => {",
+              "        if (err2 || assignRes.code !== 204) {",
+              "            console.warn('⚠️  No se pudo asignar el rol \"' + roleName + '\". Código:', assignRes?.code);",
+              "            return;",
+              "        }",
+              "        console.log('✅ Rol \"' + roleName + '\" asignado al usuario ' + userId);",
+              "    });",
+              "});",
+              "",
+              "console.log('➡️  Ahora usa \"POST Crear usuario\" en la colección 02-User-Service para crear el perfil local.');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            { "key": "token", "value": "{{admin_token}}", "type": "string" }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"nuevo_usuario\",\n  \"email\": \"usuario@email.com\",\n  \"firstName\": \"Kevin\",\n  \"lastName\": \"Guachagmira\",\n  \"enabled\": true,\n  \"emailVerified\": true,\n  \"credentials\": [\n    {\n      \"type\": \"password\",\n      \"value\": \"Temporal123!\",\n      \"temporary\": true\n    }\n  ]\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "{{keycloak_url}}/admin/realms/{{keycloak_realm}}/users",
+          "host": ["{{keycloak_url}}"],
+          "path": ["admin", "realms", "{{keycloak_realm}}", "users"]
+        },
+        "description": "Crea un usuario en Keycloak y le asigna el rol definido en {{keycloak_role_name}} (default: 'comun-user').\n\nRequiere haber ejecutado primero 'Get Admin Token'.\n\nEl role debe existir previamente en Keycloak (crearlo desde la consola admin si es necesario)."
       },
       "response": []
     },
