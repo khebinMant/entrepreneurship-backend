@@ -68,6 +68,30 @@ public class EntrepreneurshipServiceImpl implements EntrepreneurshipService {
     }
 
     @Override
+    public List<EntrepreneurshipResponse> findByUserId(Long userId, String name, Long categoryId, Boolean isPhysical, Boolean isDigital) {
+        List<EntrepreneurshipResponse> entrepreneurships = entrepreneurshipQueryRepository
+            .findByUserId(userId, name, categoryId, isPhysical, isDigital).stream()
+            .map(entrepreneurshipMapper::toResponse)
+            .toList();
+
+        entrepreneurships.forEach(this::enrichWithLogo);
+
+        return entrepreneurships;
+    }
+
+    @Override
+    public Page<EntrepreneurshipResponse> findByUserIdPaginated(Long userId, String name, Long categoryId, Boolean isPhysical, Boolean isDigital, Pageable pageable) {
+        Page<Entrepreneurship> page = entrepreneurshipQueryRepository
+            .findByUserIdPaginated(userId, name, categoryId, isPhysical, isDigital, pageable);
+
+        return page.map(entity -> {
+            EntrepreneurshipResponse response = entrepreneurshipMapper.toResponse(entity);
+            enrichWithLogo(response);
+            return response;
+        });
+    }
+
+    @Override
     public List<EntrepreneurshipResponse> search(String name, Long categoryId, Boolean isPhysical, Boolean isDigital) {
         List<EntrepreneurshipResponse> entrepreneurships = entrepreneurshipQueryRepository
             .search(name, categoryId, isPhysical, isDigital).stream()

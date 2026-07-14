@@ -32,8 +32,25 @@ public class EntrepreneurshipController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<EntrepreneurshipResponse>> findByUser(@PathVariable Long userId) {
-        return ResponseEntity.ok(entrepreneurshipService.findByUserId(userId));
+    public ResponseEntity<?> findByUser(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Boolean isPhysical,
+            @RequestParam(required = false) Boolean isDigital,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+
+        if (page != null && size != null) {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<EntrepreneurshipResponse> result = entrepreneurshipService.findByUserIdPaginated(
+                userId, name, categoryId, isPhysical, isDigital, pageable);
+            return ResponseEntity.ok(result);
+        }
+
+        List<EntrepreneurshipResponse> result = entrepreneurshipService.findByUserId(
+            userId, name, categoryId, isPhysical, isDigital);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/search")

@@ -110,7 +110,7 @@
           "response": []
         },
         {
-          "name": "GET Por creador (userId)",
+          "name": "GET Por creador (userId) con filtros",
           "event": [
             {
               "listen": "test",
@@ -118,7 +118,12 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                  "const body = pm.response.json();",
+                  "if (Array.isArray(body)) {",
+                  "    pm.test('Respuesta es array', () => pm.expect(body).to.be.an('array'));",
+                  "} else {",
+                  "    pm.test('Respuesta es Page', () => pm.expect(body).to.have.property('content'));",
+                  "}"
                 ]
               }
             }
@@ -127,11 +132,55 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{event_url}}/api/v1/events/creator/1",
+              "raw": "{{event_url}}/api/v1/events/creator/1?name=&eventTypeId=&eventVisibilityId=&fromDate=&toDate=",
               "host": ["{{event_url}}"],
-              "path": ["api", "v1", "events", "creator", "1"]
+              "path": ["api", "v1", "events", "creator", "1"],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "Feria",
+                  "description": "Filtra por nombre (contiene)",
+                  "disabled": true
+                },
+                {
+                  "key": "eventTypeId",
+                  "value": "1",
+                  "description": "ID del CatalogueValue tipo EVENT_TYPE",
+                  "disabled": true
+                },
+                {
+                  "key": "eventVisibilityId",
+                  "value": "1",
+                  "description": "ID del CatalogueValue tipo EVENT_VISIBILITY",
+                  "disabled": true
+                },
+                {
+                  "key": "fromDate",
+                  "value": "2026-01-01T00:00:00",
+                  "description": "Formato ISO-8601: yyyy-MM-ddTHH:mm:ss. Filtra eventos que terminan desde esta fecha.",
+                  "disabled": true
+                },
+                {
+                  "key": "toDate",
+                  "value": "2026-12-31T23:59:59",
+                  "description": "Formato ISO-8601: yyyy-MM-ddTHH:mm:ss. Filtra eventos que inician hasta esta fecha.",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Número de página (0-based). Requiere 'size' para activar paginación.",
+                  "disabled": true
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Tamaño de página. Requiere 'page' para activar paginación.",
+                  "disabled": true
+                }
+              ]
             },
-            "description": "Reemplaza '1' por el ID del usuario creador."
+            "description": "Retorna eventos creados por el usuario con filtros opcionales.\n- Sin filtros: retorna todos los eventos del usuario (List).\n- Con page + size: retorna una Page paginada.\n- Con otros filtros: combina los filtros con AND sobre los resultados del usuario.\n\nNota: Los filtros de fecha usan lógica de solapamiento (overlap): un evento coincide si su rango se superpone con el rango consultado, no solo si está contenido.\nReemplaza '1' en la URL por el userId."
           },
           "response": []
         },

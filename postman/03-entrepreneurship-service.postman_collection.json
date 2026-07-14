@@ -110,7 +110,7 @@
           "response": []
         },
         {
-          "name": "GET Por usuario (userId)",
+          "name": "GET Por usuario (userId) con filtros",
           "event": [
             {
               "listen": "test",
@@ -118,7 +118,12 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                  "const body = pm.response.json();",
+                  "if (Array.isArray(body)) {",
+                  "    pm.test('Respuesta es array', () => pm.expect(body).to.be.an('array'));",
+                  "} else {",
+                  "    pm.test('Respuesta es Page', () => pm.expect(body).to.have.property('content'));",
+                  "}"
                 ]
               }
             }
@@ -127,11 +132,49 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurships/user/1",
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurships/user/1?name=&categoryId=&isPhysical=&isDigital=",
               "host": ["{{entrepreneurship_url}}"],
-              "path": ["api", "v1", "entrepreneurships", "user", "1"]
+              "path": ["api", "v1", "entrepreneurships", "user", "1"],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "",
+                  "description": "Filtra por nombre (contiene, case-insensitive)",
+                  "disabled": true
+                },
+                {
+                  "key": "categoryId",
+                  "value": "",
+                  "description": "ID del CatalogueValue de categoría",
+                  "disabled": true
+                },
+                {
+                  "key": "isPhysical",
+                  "value": "true",
+                  "description": "true | false",
+                  "disabled": true
+                },
+                {
+                  "key": "isDigital",
+                  "value": "true",
+                  "description": "true | false",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Número de página (0-based). Requiere 'size' para activar paginación.",
+                  "disabled": true
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Tamaño de página. Requiere 'page' para activar paginación.",
+                  "disabled": true
+                }
+              ]
             },
-            "description": "Retorna todos los emprendimientos de un usuario. Reemplaza '1' por el userId."
+            "description": "Retorna emprendimientos del usuario con filtros opcionales.\n- Sin filtros: retorna todos los emprendimientos del usuario (List).\n- Con page + size: retorna una Page paginada.\n- Con otros filtros: combina los filtros con AND sobre los resultados del usuario.\nReemplaza '1' en la URL por el userId."
           },
           "response": []
         },

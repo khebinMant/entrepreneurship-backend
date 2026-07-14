@@ -8,12 +8,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @RestController
@@ -34,8 +37,29 @@ public class EventController {
     }
 
     @GetMapping("/creator/{userId}")
-    public ResponseEntity<List<EventResponse>> findByCreator(@PathVariable Long userId) {
-        return ResponseEntity.ok(eventService.findByCreator(userId));
+    public ResponseEntity<?> findByCreator(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Long eventTypeId,
+            @RequestParam(required = false) Long eventVisibilityId,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+
+        LocalDateTime fromDateTime = parseDateParam(fromDate, true);
+        LocalDateTime toDateTime = parseDateParam(toDate, false);
+
+        if (page != null && size != null) {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<EventResponse> result = eventService.findByCreatorPaginated(
+                userId, name, eventTypeId, eventVisibilityId, fromDateTime, toDateTime, pageable);
+            return ResponseEntity.ok(result);
+        }
+
+        List<EventResponse> result = eventService.findByCreator(
+            userId, name, eventTypeId, eventVisibilityId, fromDateTime, toDateTime);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/search")
@@ -43,19 +67,22 @@ public class EventController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Long eventTypeId,
             @RequestParam(required = false) Long eventVisibilityId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
+
+        LocalDateTime fromDateTime = parseDateParam(fromDate, true);
+        LocalDateTime toDateTime = parseDateParam(toDate, false);
 
         if (page != null && size != null) {
             Pageable pageable = PageRequest.of(page, size);
             Page<EventResponse> result = eventService.searchPaginated(
-                name, eventTypeId, eventVisibilityId, fromDate, toDate, pageable);
+                name, eventTypeId, eventVisibilityId, fromDateTime, toDateTime, pageable);
             return ResponseEntity.ok(result);
         }
 
-        List<EventResponse> result = eventService.search(name, eventTypeId, eventVisibilityId, fromDate, toDate);
+        List<EventResponse> result = eventService.search(name, eventTypeId, eventVisibilityId, fromDateTime, toDateTime);
         return ResponseEntity.ok(result);
     }
 
@@ -74,5 +101,15 @@ public class EventController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         eventService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private LocalDateTime parseDateParam(String dateStr, boolean isFromDate) {
+        if (dateStr == null || dateStr.isBlank()) return null;
+        try {
+            return LocalDateTime.parse(dateStr, DateTimeFormatter.ISO_DATE_TIME);
+        } catch (DateTimeParseException e) {
+            LocalDate date = LocalDate.parse(dateStr, DateTimeFormatter.ISO_DATE);
+            return isFromDate ? date.atStartOfDay() : date.atTime(LocalTime.MAX);
+        }
     }
 }

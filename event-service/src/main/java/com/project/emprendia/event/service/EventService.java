@@ -16,6 +16,12 @@ public interface EventService {
 
     List<EventResponse> findByCreator(Long userId);
 
+    List<EventResponse> findByCreator(Long userId, String name, Long eventTypeId, Long eventVisibilityId,
+                                       LocalDateTime fromDate, LocalDateTime toDate);
+
+    Page<EventResponse> findByCreatorPaginated(Long userId, String name, Long eventTypeId, Long eventVisibilityId,
+                                                LocalDateTime fromDate, LocalDateTime toDate, Pageable pageable);
+
     List<EventResponse> search(String name, Long eventTypeId, Long eventVisibilityId,
                                 LocalDateTime fromDate, LocalDateTime toDate);
 

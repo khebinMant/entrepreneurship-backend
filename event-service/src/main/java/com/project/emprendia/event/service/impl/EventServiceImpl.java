@@ -61,6 +61,31 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    public List<EventResponse> findByCreator(Long userId, String name, Long eventTypeId, Long eventVisibilityId,
+                                              LocalDateTime fromDate, LocalDateTime toDate) {
+        List<EventResponse> events = eventQueryRepository
+            .findByCreator(userId, name, eventTypeId, eventVisibilityId, fromDate, toDate).stream()
+            .map(eventMapper::toResponse)
+            .toList();
+
+        events.forEach(this::enrichWithCoverImage);
+        return events;
+    }
+
+    @Override
+    public Page<EventResponse> findByCreatorPaginated(Long userId, String name, Long eventTypeId, Long eventVisibilityId,
+                                                       LocalDateTime fromDate, LocalDateTime toDate, Pageable pageable) {
+        Page<Event> page = eventQueryRepository.findByCreatorPaginated(
+            userId, name, eventTypeId, eventVisibilityId, fromDate, toDate, pageable);
+
+        return page.map(entity -> {
+            EventResponse response = eventMapper.toResponse(entity);
+            enrichWithCoverImage(response);
+            return response;
+        });
+    }
+
+    @Override
     public List<EventResponse> search(String name, Long eventTypeId, Long eventVisibilityId,
                                        LocalDateTime fromDate, LocalDateTime toDate) {
         List<EventResponse> events = eventQueryRepository

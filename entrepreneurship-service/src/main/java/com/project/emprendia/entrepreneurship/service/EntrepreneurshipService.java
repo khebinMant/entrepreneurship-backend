@@ -15,6 +15,10 @@ public interface EntrepreneurshipService {
 
     List<EntrepreneurshipResponse> findByUserId(Long userId);
 
+    List<EntrepreneurshipResponse> findByUserId(Long userId, String name, Long categoryId, Boolean isPhysical, Boolean isDigital);
+
+    Page<EntrepreneurshipResponse> findByUserIdPaginated(Long userId, String name, Long categoryId, Boolean isPhysical, Boolean isDigital, Pageable pageable);
+
     List<EntrepreneurshipResponse> search(String name, Long categoryId, Boolean isPhysical, Boolean isDigital);
 
     Page<EntrepreneurshipResponse> searchPaginated(String name, Long categoryId, Boolean isPhysical, Boolean isDigital, Pageable pageable);
