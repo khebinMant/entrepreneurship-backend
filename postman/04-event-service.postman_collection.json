@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "00000004-event-service-emprendia-0005",
     "name": "04 – Event Service (Puerto 8083)",
-    "description": "Gestión de eventos y ferias de la plataforma Emprendia.\n\nTodos los endpoints requieren JWT válido.\n\nBase URL: {{event_url}} = http://localhost:8083\n\n## FLUJO DE INVITACIONES:\n1. POST /event-invitations → Envía invitación (crea invitation + participant)\n2. PATCH /event-invitations/{id}/status → Aceptar/Rechazar\n   - Si ACCEPTED: Crea espacio automáticamente (A-01, A-02, etc.)\n3. GET /event-participants/event/{id} → Lista emprendimientos del evento\n   - Filtrar por estado: ?statusId=1 (INVITED), 2 (ACCEPTED), 3 (REJECTED)\n\nCampos del body (EventRequest):\n- createdByUserId (Long, requerido): ID del usuario creador\n- name (String, max 150, requerido): Nombre del evento\n- description (String, opcional)\n- eventTypeId (Long, requerido): ID del CatalogueValue tipo EVENT_TYPE\n- eventVisibilityId (Long, requerido): ID del CatalogueValue tipo EVENT_VISIBILITY\n- isPaid (Boolean, requerido): Si el evento es pago\n- price (BigDecimal, opcional): Precio si isPaid=true\n- maxAttendees (Integer, opcional): Límite de asistentes\n- maxEntrepreneurships (Integer, opcional): Límite de emprendimientos expositores\n- virtualLink (String, opcional): URL para eventos virtuales\n- startDatetime (LocalDateTime, requerido): ISO-8601 ej: 2026-05-15T09:00:00\n- endDatetime (LocalDateTime, requerido): ISO-8601 ej: 2026-05-15T18:00:00\n- countryId (Long, opcional): ID del CatalogueValue COUNTRY\n- provinceId (Long, opcional): ID del CatalogueValue PROVINCE\n- cityId (Long, opcional): ID del CatalogueValue CITY\n- addressLine (String, opcional): Dirección textual",
+    "description": "Gestión de eventos y ferias de la plataforma Emprendia.\n\nTodos los endpoints requieren JWT válido.\n\nBase URL: {{event_url}} = http://localhost:8083\n\n## FLUJO DE INVITACIONES:\n1. POST /event-invitations → Envía invitación (crea invitation + participant)\n2. PATCH /event-invitations/{id}/status → Aceptar/Rechazar\n   - Si ACCEPTED: Crea espacio automáticamente (A-01, A-02, etc.)\n3. GET /event-participants/event/{id} → Lista emprendimientos del evento\n   - Filtrar por estado: ?statusId=1 (INVITED), 2 (ACCEPTED), 3 (REJECTED)\n\n## FILTROS DE FECHA (GET /search y GET /creator/{userId}):\n- fromDate y toDate filtran por startDatetime del evento\n- Aceptan formato fecha (yyyy-MM-dd) o datetime completo (yyyy-MM-ddTHH:mm:ss)\n- Si se envía solo fecha: fromDate se interpreta como inicio del día, toDate como fin del día\n\nCampos del body (EventRequest):\n- createdByUserId (Long, requerido): ID del usuario creador\n- name (String, max 150, requerido): Nombre del evento\n- description (String, opcional)\n- eventTypeId (Long, requerido): ID del CatalogueValue tipo EVENT_TYPE\n- eventVisibilityId (Long, requerido): ID del CatalogueValue tipo EVENT_VISIBILITY\n- isPaid (Boolean, requerido): Si el evento es pago\n- price (BigDecimal, opcional): Precio si isPaid=true\n- maxAttendees (Integer, opcional): Límite de asistentes\n- maxEntrepreneurships (Integer, opcional): Límite de emprendimientos expositores\n- virtualLink (String, opcional): URL para eventos virtuales\n- startDatetime (LocalDateTime, requerido): ISO-8601 ej: 2026-05-15T09:00:00\n- endDatetime (LocalDateTime, requerido): ISO-8601 ej: 2026-05-15T18:00:00\n- countryId (Long, opcional): ID del CatalogueValue COUNTRY\n- provinceId (Long, opcional): ID del CatalogueValue PROVINCE\n- cityId (Long, opcional): ID del CatalogueValue CITY\n- addressLine (String, opcional): Dirección textual",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -156,14 +156,14 @@
                 },
                 {
                   "key": "fromDate",
-                  "value": "2026-01-01T00:00:00",
-                  "description": "Formato ISO-8601: yyyy-MM-ddTHH:mm:ss. Filtra eventos que terminan desde esta fecha.",
+                  "value": "2026-01-01",
+                  "description": "Filtra por startDatetime (>=). Formato: yyyy-MM-dd o yyyy-MM-ddTHH:mm:ss",
                   "disabled": true
                 },
                 {
                   "key": "toDate",
-                  "value": "2026-12-31T23:59:59",
-                  "description": "Formato ISO-8601: yyyy-MM-ddTHH:mm:ss. Filtra eventos que inician hasta esta fecha.",
+                  "value": "2026-12-31",
+                  "description": "Filtra por startDatetime (<=). Formato: yyyy-MM-dd o yyyy-MM-ddTHH:mm:ss",
                   "disabled": true
                 },
                 {
@@ -180,7 +180,7 @@
                 }
               ]
             },
-            "description": "Retorna eventos creados por el usuario con filtros opcionales.\n- Sin filtros: retorna todos los eventos del usuario (List).\n- Con page + size: retorna una Page paginada.\n- Con otros filtros: combina los filtros con AND sobre los resultados del usuario.\n\nNota: Los filtros de fecha usan lógica de solapamiento (overlap): un evento coincide si su rango se superpone con el rango consultado, no solo si está contenido.\nReemplaza '1' en la URL por el userId."
+            "description": "Retorna eventos creados por el usuario con filtros opcionales.\n- Sin filtros: retorna todos los eventos del usuario (List).\n- Con page + size: retorna una Page paginada.\n- Con otros filtros: combina los filtros con AND sobre los resultados del usuario.\n\n📅 Filtro por fecha: usa el campo startDatetime. Acepta formato fecha (yyyy-MM-dd) o datetime (yyyy-MM-ddTHH:mm:ss).\n- fromDate solos: eventos con startDatetime >= desde\n- toDate solo: eventos con startDatetime <= hasta\n- fromDate + toDate: eventos con startDatetime entre ambos\n\nReemplaza '1' en la URL por el userId."
           },
           "response": []
         },
@@ -226,19 +226,19 @@
                 },
                 {
                   "key": "fromDate",
-                  "value": "2026-01-01T00:00:00",
-                  "description": "Formato ISO-8601: yyyy-MM-ddTHH:mm:ss",
+                  "value": "2026-01-01",
+                  "description": "Filtra por startDatetime (>=). Formato: yyyy-MM-dd o yyyy-MM-ddTHH:mm:ss",
                   "disabled": true
                 },
                 {
                   "key": "toDate",
-                  "value": "2026-12-31T23:59:59",
-                  "description": "Formato ISO-8601: yyyy-MM-ddTHH:mm:ss",
+                  "value": "2026-12-31",
+                  "description": "Filtra por startDatetime (<=). Formato: yyyy-MM-dd o yyyy-MM-ddTHH:mm:ss",
                   "disabled": true
                 }
               ]
             },
-            "description": "Todos los filtros son opcionales. Activa los que necesites en la pestaña Params.\n\nNota: las fechas deben ir en formato ISO-8601 sin zona horaria: 2026-05-15T09:00:00"
+            "description": "Todos los filtros son opcionales. Activa los que necesites en la pestaña Params.\n\n📅 Filtro por fecha: usa el campo startDatetime. Acepta formato fecha (yyyy-MM-dd) o datetime (yyyy-MM-ddTHH:mm:ss).\n- fromDate: inicia el día (00:00:00) si se envía solo fecha\n- toDate: termina el día (23:59:59.999999999) si se envía solo fecha"
           },
           "response": []
         },

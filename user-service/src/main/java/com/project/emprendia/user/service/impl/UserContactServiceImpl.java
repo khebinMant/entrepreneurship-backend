@@ -36,8 +36,19 @@ public class UserContactServiceImpl implements UserContactService {
     }
 
     @Override
+    public List<UserContactResponse> findByUserId(Long userId) {
+        return userContactRepository.findByUser_UserId(userId).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public UserContactResponse create(UserContactRequest request) {
+        if (Boolean.TRUE.equals(request.getIsPrimary())) {
+            userContactRepository.findByUser_UserId(request.getUserId())
+                    .forEach(c -> c.setIsPrimary(false));
+        }
         UserContact contact = toEntity(request);
         return toResponse(userContactRepository.save(contact));
     }
@@ -47,6 +58,10 @@ public class UserContactServiceImpl implements UserContactService {
     public UserContactResponse update(Long id, UserContactRequest request) {
         UserContact contact = userContactRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User contact not found"));
+        if (Boolean.TRUE.equals(request.getIsPrimary())) {
+            userContactRepository.findByUser_UserId(contact.getUser().getUserId())
+                    .forEach(c -> c.setIsPrimary(false));
+        }
         updateEntity(contact, request);
         return toResponse(userContactRepository.save(contact));
     }

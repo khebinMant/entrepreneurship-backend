@@ -36,8 +36,19 @@ public class UserAddressServiceImpl implements UserAddressService {
     }
 
     @Override
+    public List<UserAddressResponse> findByUserId(Long userId) {
+        return userAddressRepository.findByUser_UserId(userId).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public UserAddressResponse create(UserAddressRequest request) {
+        if (Boolean.TRUE.equals(request.getIsPrimary())) {
+            userAddressRepository.findByUser_UserId(request.getUserId())
+                    .forEach(a -> a.setIsPrimary(false));
+        }
         UserAddress address = toEntity(request);
         return toResponse(userAddressRepository.save(address));
     }
@@ -47,6 +58,10 @@ public class UserAddressServiceImpl implements UserAddressService {
     public UserAddressResponse update(Long id, UserAddressRequest request) {
         UserAddress address = userAddressRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User address not found"));
+        if (Boolean.TRUE.equals(request.getIsPrimary())) {
+            userAddressRepository.findByUser_UserId(address.getUser().getUserId())
+                    .forEach(a -> a.setIsPrimary(false));
+        }
         updateEntity(address, request);
         return toResponse(userAddressRepository.save(address));
     }

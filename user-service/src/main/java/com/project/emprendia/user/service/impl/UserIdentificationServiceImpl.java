@@ -36,6 +36,13 @@ public class UserIdentificationServiceImpl implements UserIdentificationService 
     }
 
     @Override
+    public List<UserIdentificationResponse> findByUserId(Long userId) {
+        return userIdentificationRepository.findByUser_UserId(userId).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public UserIdentificationResponse create(UserIdentificationRequest request) {
         UserIdentification identification = toEntity(request);

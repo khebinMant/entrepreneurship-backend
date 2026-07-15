@@ -2,8 +2,10 @@ package com.project.emprendia.user.service.impl;
 
 import com.project.emprendia.user.client.SharedServiceClient;
 import com.project.emprendia.user.domain.AppUser;
+import com.project.emprendia.user.dto.ChangePasswordRequest;
 import com.project.emprendia.user.dto.UserRequest;
 import com.project.emprendia.user.dto.UserResponse;
+import com.project.emprendia.user.dto.UserUpdateRequest;
 import com.project.emprendia.user.exception.DuplicateResourceException;
 import com.project.emprendia.user.exception.ResourceNotFoundException;
 import com.project.emprendia.user.mapping.mapper.UserMapper;
@@ -70,11 +72,32 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponse update(Long id, UserRequest request) {
+    public UserResponse update(Long id, UserUpdateRequest request) {
         AppUser entity = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User", id));
-        userMapper.updateEntityFromRequest(request, entity);
+
+        userMapper.updateEntityFromUpdateRequest(request, entity);
+
+        if (request.getEmail() != null) {
+            keycloakAdminService.updateUser(
+                entity.getKeycloakId(),
+                request.getFirstName(),
+                request.getLastName(),
+                request.getEmail()
+            );
+        }
+
         return userMapper.toResponse(userRepository.save(entity));
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(Long id, ChangePasswordRequest request) {
+        AppUser entity = userRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("User", id));
+
+        keycloakAdminService.changePassword(entity.getKeycloakId(), request.getNewPassword());
+        log.info("Contraseña cambiada exitosamente para usuario ID: {}", id);
     }
 
     @Override

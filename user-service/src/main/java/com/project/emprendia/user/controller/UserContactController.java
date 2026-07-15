@@ -28,6 +28,11 @@ public class UserContactController {
         return ResponseEntity.ok(userContactService.findById(id));
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<UserContactResponse>> findByUserId(@PathVariable Long userId) {
+        return ResponseEntity.ok(userContactService.findByUserId(userId));
+    }
+
     @PostMapping
     public ResponseEntity<UserContactResponse> create(@Valid @RequestBody UserContactRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userContactService.create(request));

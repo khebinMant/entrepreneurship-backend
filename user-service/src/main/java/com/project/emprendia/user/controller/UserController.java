@@ -1,7 +1,9 @@
 package com.project.emprendia.user.controller;
 
+import com.project.emprendia.user.dto.ChangePasswordRequest;
 import com.project.emprendia.user.dto.UserRequest;
 import com.project.emprendia.user.dto.UserResponse;
+import com.project.emprendia.user.dto.UserUpdateRequest;
 import com.project.emprendia.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,8 +42,15 @@ public class UserController {
 
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> update(@PathVariable Long id,
-                                                @Valid @RequestBody UserRequest request) {
+                                                @Valid @RequestBody UserUpdateRequest request) {
         return ResponseEntity.ok(userService.update(id, request));
+    }
+
+    @PostMapping("/{id}/change-password")
+    public ResponseEntity<Void> changePassword(@PathVariable Long id,
+                                                @Valid @RequestBody ChangePasswordRequest request) {
+        userService.changePassword(id, request);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")

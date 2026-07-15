@@ -28,6 +28,11 @@ public class UserAddressController {
         return ResponseEntity.ok(userAddressService.findById(id));
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<UserAddressResponse>> findByUserId(@PathVariable Long userId) {
+        return ResponseEntity.ok(userAddressService.findByUserId(userId));
+    }
+
     @PostMapping
     public ResponseEntity<UserAddressResponse> create(@Valid @RequestBody UserAddressRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userAddressService.create(request));

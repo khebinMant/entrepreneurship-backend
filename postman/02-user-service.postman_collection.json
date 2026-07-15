@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "00000002-user-service-emprendia-0003",
     "name": "02 – User Service (Puerto 8081)",
-    "description": "Gestión de usuarios de la plataforma Emprendia.\n\nTodos los endpoints requieren JWT válido (Bearer {{access_token}}).\n\nBase URL: {{user_url}} = http://localhost:8081\n\n⚠️ FLUJO CORRECTO PARA CREAR USUARIO:\n1. Colección 00-Auth-Keycloak > Get Admin Token\n2. Colección 00-Auth-Keycloak > Create User en Keycloak (genera {{keycloak_user_id}})\n3. Luego sí: POST Crear usuario (usa {{keycloak_user_id}} automáticamente)\n\nCampos del body:\n- keycloakId (String): ID del usuario en Keycloak (claim 'sub' del JWT)\n- firstName (String): Nombre\n- lastName (String): Apellido\n- profilePictureUrl (String, opcional): URL de foto de perfil",
+    "description": "Gestión de usuarios de la plataforma Emprendia.\n\nTodos los endpoints requieren JWT válido (Bearer {{access_token}}).\n\nBase URL: {{user_url}} = http://localhost:8081\n\n⚠️ FLUJO CORRECTO PARA CREAR USUARIO:\n1. Colección 00-Auth-Keycloak > Get Admin Token\n2. Colección 00-Auth-Keycloak > Create User en Keycloak (genera {{keycloak_user_id}})\n3. Luego sí: POST Crear usuario (usa {{keycloak_user_id}} automáticamente)\n\nCampos del body:\n- keycloakId (String): ID del usuario en Keycloak (claim 'sub' del JWT)\n- firstName (String): Nombre\n- lastName (String): Apellido\n- profilePictureUrl (String, opcional): URL de foto de perfil\n\n✏️ PUT Actualizar usuario:\n- firstName (String, opcional): Nombre\n- lastName (String, opcional): Apellido\n- profilePictureUrl (String, opcional): URL de foto de perfil\n- email (String, opcional): Correo a actualizar (se sincroniza con Keycloak)\n\n🔑 POST Cambiar contraseña:\n- newPassword (String, requerido): Nueva contraseña (se actualiza en Keycloak)\n\n📬 Endpoints por usuario:\n- GET /user-addresses/user/{userId}\n- GET /user-contacts/user/{userId}\n- GET /user-identifications/user/{userId}\n\n⭐ isPrimary: al crear/actualizar un contacto o dirección con isPrimary=true, los demás registros del mismo usuario se desmarcan automáticamente.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -180,7 +180,7 @@
           "response": []
         },
         {
-          "name": "PUT Actualizar usuario",
+          "name": "PUT Actualizar usuario (sincroniza email con Keycloak)",
           "event": [
             {
               "listen": "test",
@@ -199,7 +199,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"keycloakId\": \"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\",\n  \"firstName\": \"Kevin Actualizado\",\n  \"lastName\": \"Guachagmira\",\n  \"profilePictureUrl\": \"https://ejemplo.com/foto.jpg\"\n}",
+              "raw": "{\n  \"firstName\": \"Kevin Actualizado\",\n  \"lastName\": \"Guachagmira\",\n  \"profilePictureUrl\": \"https://ejemplo.com/foto.jpg\",\n  \"email\": \"nuevoemail@correo.com\"\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -207,7 +207,39 @@
               "host": ["{{user_url}}"],
               "path": ["api", "v1", "users", "1"]
             },
-            "description": "Reemplaza '1' por el ID del usuario a actualizar."
+            "description": "Reemplaza '1' por el ID del usuario.\n\nCampos opcionales:\n- firstName: actualiza nombre en DB local\n- lastName: actualiza apellido en DB local\n- profilePictureUrl: actualiza foto en DB local\n- email: actualiza correo en Keycloak (se sincroniza automáticamente)"
+          },
+          "response": []
+        },
+        {
+          "name": "POST Cambiar contraseña (Keycloak)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPassword\": \"NuevaContraseña123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{user_url}}/api/v1/users/1/change-password",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "users", "1", "change-password"]
+            },
+            "description": "Reemplaza '1' por el ID del usuario.\n\nLa contraseña se actualiza directamente en Keycloak desde el backend."
           },
           "response": []
         },
@@ -240,7 +272,7 @@
     },
     {
       "name": "User Contacts",
-      "description": "Gestión de contactos de usuario (teléfono, email, etc.)",
+      "description": "Gestión de contactos de usuario (teléfono, email, etc.). GET /user/{userId} para obtener contactos por usuario. ⭐ isPrimary auto-management.",
       "item": [
         {
           "name": "GET Listar todos",
@@ -290,6 +322,32 @@
               "host": ["{{user_url}}"],
               "path": ["api", "v1", "user-contacts", "1"]
             }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Por usuario (userId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/v1/user-contacts/user/1",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "user-contacts", "user", "1"]
+            },
+            "description": "Reemplaza '1' por el userId. Retorna todos los contactos del usuario."
           },
           "response": []
         },
@@ -323,7 +381,7 @@
               "host": ["{{user_url}}"],
               "path": ["api", "v1", "user-contacts"]
             },
-            "description": "contactTypeId debe ser ID de catalogue_value tipo CONTACT_TYPE (1=PHONE, 2=EMAIL, etc.)"
+            "description": "contactTypeId debe ser ID de catalogue_value tipo CONTACT_TYPE (1=PHONE, 2=EMAIL, etc.)\n\n⭐ isPrimary: si se marca como true, automáticamente desmarca los demás contactos del usuario."
           },
           "response": []
         },
@@ -354,7 +412,8 @@
               "raw": "{{user_url}}/api/v1/user-contacts/1",
               "host": ["{{user_url}}"],
               "path": ["api", "v1", "user-contacts", "1"]
-            }
+            },
+            "description": "⭐ isPrimary: si se marca como true, automáticamente desmarca los demás contactos del usuario."
           },
           "response": []
         },
@@ -386,7 +445,7 @@
     },
     {
       "name": "User Addresses",
-      "description": "Gestión de direcciones de usuario",
+      "description": "Gestión de direcciones de usuario. GET /user/{userId} para obtener direcciones por usuario. ⭐ isPrimary auto-management.",
       "item": [
         {
           "name": "GET Listar todos",
@@ -440,6 +499,32 @@
           "response": []
         },
         {
+          "name": "GET Por usuario (userId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/v1/user-addresses/user/1",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "user-addresses", "user", "1"]
+            },
+            "description": "Reemplaza '1' por el userId. Retorna todas las direcciones del usuario."
+          },
+          "response": []
+        },
+        {
           "name": "POST Crear dirección",
           "event": [
             {
@@ -469,7 +554,7 @@
               "host": ["{{user_url}}"],
               "path": ["api", "v1", "user-addresses"]
             },
-            "description": "IDs según catálogos COUNTRY > PROVINCE > CITY > PARISH. Usa shared-service para obtener los valores."
+            "description": "IDs según catálogos COUNTRY > PROVINCE > CITY > PARISH. Usa shared-service para obtener los valores.\n\n⭐ isPrimary: si se marca como true, automáticamente desmarca las demás direcciones del usuario."
           },
           "response": []
         },
@@ -500,7 +585,8 @@
               "raw": "{{user_url}}/api/v1/user-addresses/1",
               "host": ["{{user_url}}"],
               "path": ["api", "v1", "user-addresses", "1"]
-            }
+            },
+            "description": "⭐ isPrimary: si se marca como true, automáticamente desmarca las demás direcciones del usuario."
           },
           "response": []
         },
@@ -532,7 +618,7 @@
     },
     {
       "name": "User Identifications",
-      "description": "Gestión de identificaciones de usuario (cédula, RUC, pasaporte)",
+      "description": "Gestión de identificaciones de usuario (cédula, RUC, pasaporte). GET /user/{userId} para obtener identificaciones por usuario.",
       "item": [
         {
           "name": "GET Listar todos",
@@ -582,6 +668,32 @@
               "host": ["{{user_url}}"],
               "path": ["api", "v1", "user-identifications", "1"]
             }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Por usuario (userId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta es array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/v1/user-identifications/user/1",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "user-identifications", "user", "1"]
+            },
+            "description": "Reemplaza '1' por el userId. Retorna todas las identificaciones del usuario."
           },
           "response": []
         },

@@ -48,6 +48,28 @@ public class KeycloakAdminService {
         return keycloakUserId;
     }
 
+    public void updateUser(String keycloakUserId, String firstName, String lastName, String email) {
+        try {
+            String adminToken = getAdminToken();
+            doUpdateUser(adminToken, keycloakUserId, firstName, lastName, email);
+            log.info("Usuario {} actualizado en Keycloak", keycloakUserId);
+        } catch (Exception e) {
+            log.error("Error al actualizar usuario {} en Keycloak: {}", keycloakUserId, e.getMessage());
+            throw new RuntimeException("Error al actualizar usuario en Keycloak: " + e.getMessage(), e);
+        }
+    }
+
+    public void changePassword(String keycloakUserId, String newPassword) {
+        try {
+            String adminToken = getAdminToken();
+            doChangePassword(adminToken, keycloakUserId, newPassword);
+            log.info("Contraseña actualizada para usuario {} en Keycloak", keycloakUserId);
+        } catch (Exception e) {
+            log.error("Error al cambiar contraseña para usuario {} en Keycloak: {}", keycloakUserId, e.getMessage());
+            throw new RuntimeException("Error al cambiar contraseña en Keycloak: " + e.getMessage(), e);
+        }
+    }
+
     public void assignDefaultRole(String keycloakUserId) {
         try {
             String adminToken = getAdminToken();
@@ -136,6 +158,39 @@ public class KeycloakAdminService {
                 .header("Authorization", "Bearer " + adminToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(List.of(Map.of("id", role.get("id"), "name", role.get("name"))))
+                .retrieve()
+                .toBodilessEntity();
+    }
+
+    private void doUpdateUser(String adminToken, String keycloakUserId, String firstName, String lastName, String email) {
+        Map<String, Object> updates = new java.util.HashMap<>();
+        if (firstName != null) updates.put("firstName", firstName);
+        if (lastName != null) updates.put("lastName", lastName);
+        if (email != null) updates.put("email", email);
+
+        if (!updates.isEmpty()) {
+            restClient.put()
+                    .uri(serverUrl + "/admin/realms/{realm}/users/{userId}", realm, keycloakUserId)
+                    .header("Authorization", "Bearer " + adminToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(updates)
+                    .retrieve()
+                    .toBodilessEntity();
+        }
+    }
+
+    private void doChangePassword(String adminToken, String keycloakUserId, String newPassword) {
+        List<Map<String, Object>> credentials = List.of(Map.of(
+                "type", "password",
+                "value", newPassword,
+                "temporary", false
+        ));
+
+        restClient.put()
+                .uri(serverUrl + "/admin/realms/{realm}/users/{userId}", realm, keycloakUserId)
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("credentials", credentials))
                 .retrieve()
                 .toBodilessEntity();
     }

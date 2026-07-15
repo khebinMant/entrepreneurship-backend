@@ -28,6 +28,11 @@ public class UserIdentificationController {
         return ResponseEntity.ok(userIdentificationService.findById(id));
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<UserIdentificationResponse>> findByUserId(@PathVariable Long userId) {
+        return ResponseEntity.ok(userIdentificationService.findByUserId(userId));
+    }
+
     @PostMapping
     public ResponseEntity<UserIdentificationResponse> create(@Valid @RequestBody UserIdentificationRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userIdentificationService.create(request));
