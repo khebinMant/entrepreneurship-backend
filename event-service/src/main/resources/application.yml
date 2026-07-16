@@ -25,9 +25,32 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/emprendia}
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:muyapp2020@gmail.com}
+    password: "nirt vyud gumb hkwo"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 10000
+          timeout: 30000
+          writetimeout: 10000
 
 server:
   port: 8083
+
+# Mail Configuration
+mail:
+  from: ${MAIL_FROM:muyapp2020@gmail.com}
+
+# Frontend URL for email links
+app:
+  frontend-url: ${FRONTEND_URL:http://localhost:4200}
 
 # Feign Client Configuration
 feign:
@@ -120,6 +143,21 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI}
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:muyapp2020@gmail.com}
+    password: "nirt vyud gumb hkwo"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 10000
+          timeout: 30000
+          writetimeout: 10000
 
 server:
   port: 8083
@@ -152,6 +190,21 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI}
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:muyapp2020@gmail.com}
+    password: "nirt vyud gumb hkwo"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 10000
+          timeout: 30000
+          writetimeout: 10000
 
 server:
   port: 8083

@@ -37,6 +37,13 @@ public class CatalogueTypeServiceImpl implements CatalogueTypeService {
     }
 
     @Override
+    public CatalogueTypeResponse findByCode(String code) {
+        CatalogueType entity = catalogueTypeRepository.findByCode(code)
+            .orElseThrow(() -> new ResourceNotFoundException("CatalogueType with code: " + code));
+        return catalogueTypeMapper.toResponse(entity);
+    }
+
+    @Override
     @Transactional
     public CatalogueTypeResponse create(CatalogueTypeRequest request) {
         if (catalogueTypeRepository.existsByCode(request.getCode())) {

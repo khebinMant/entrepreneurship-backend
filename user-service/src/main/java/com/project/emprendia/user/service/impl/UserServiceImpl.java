@@ -91,6 +91,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public String getEmail(Long id) {
+        AppUser entity = userRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("User", id));
+        return keycloakAdminService.getUserEmail(entity.getKeycloakId());
+    }
+
+    @Override
     @Transactional
     public void changePassword(Long id, ChangePasswordRequest request) {
         AppUser entity = userRepository.findById(id)

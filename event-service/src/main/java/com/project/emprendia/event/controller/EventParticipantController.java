@@ -20,11 +20,11 @@ public class EventParticipantController {
     private final EventParticipantService participantService;
 
     @Operation(summary = "Listar participantes por evento con filtro opcional de estado",
-               description = "Obtiene participantes de un evento. Puede filtrar por estado: INVITED(1), ACCEPTED(2), REJECTED(3)")
+               description = "Obtiene participantes de un evento. Filtra por statusId del catálogo PARTICIPATION_STATUS (INVITED, ACCEPTED, REJECTED)")
     @GetMapping("/event/{eventId}")
     public ResponseEntity<List<EventParticipantResponse>> findByEvent(
             @Parameter(description = "ID del evento") @PathVariable Long eventId,
-            @Parameter(description = "ID del estado (opcional): 1=INVITED, 2=ACCEPTED, 3=REJECTED")
+            @Parameter(description = "statusId del catálogo PARTICIPATION_STATUS (usa GET /api/v1/catalogue-values/by-type/PARTICIPATION_STATUS)")
             @RequestParam(required = false) Long statusId) {
         return ResponseEntity.ok(participantService.findByEventIdAndStatus(eventId, statusId));
     }

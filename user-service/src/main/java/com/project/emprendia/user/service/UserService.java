@@ -19,6 +19,8 @@ public interface UserService {
 
     UserResponse update(Long id, UserUpdateRequest request);
 
+    String getEmail(Long id);
+
     void changePassword(Long id, ChangePasswordRequest request);
 
     void delete(Long id);

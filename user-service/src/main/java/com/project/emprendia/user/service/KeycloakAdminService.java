@@ -70,6 +70,21 @@ public class KeycloakAdminService {
         }
     }
 
+    public String getUserEmail(String keycloakUserId) {
+        try {
+            String adminToken = getAdminToken();
+            Map<String, Object> userData = restClient.get()
+                    .uri(serverUrl + "/admin/realms/{realm}/users/{userId}", realm, keycloakUserId)
+                    .header("Authorization", "Bearer " + adminToken)
+                    .retrieve()
+                    .body(Map.class);
+            return userData != null ? (String) userData.get("email") : null;
+        } catch (Exception e) {
+            log.warn("No se pudo obtener email de Keycloak para usuario {}: {}", keycloakUserId, e.getMessage());
+            return null;
+        }
+    }
+
     public void assignDefaultRole(String keycloakUserId) {
         try {
             String adminToken = getAdminToken();

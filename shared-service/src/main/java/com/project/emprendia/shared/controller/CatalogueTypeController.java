@@ -28,6 +28,11 @@ public class CatalogueTypeController {
         return ResponseEntity.ok(catalogueTypeService.findById(id));
     }
 
+    @GetMapping("/by-code/{code}")
+    public ResponseEntity<CatalogueTypeResponse> findByCode(@PathVariable String code) {
+        return ResponseEntity.ok(catalogueTypeService.findByCode(code));
+    }
+
     @PostMapping
     public ResponseEntity<CatalogueTypeResponse> create(@Valid @RequestBody CatalogueTypeRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(catalogueTypeService.create(request));

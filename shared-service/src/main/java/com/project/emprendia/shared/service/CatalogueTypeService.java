@@ -11,6 +11,8 @@ public interface CatalogueTypeService {
 
     CatalogueTypeResponse findById(Long id);
 
+    CatalogueTypeResponse findByCode(String code);
+
     CatalogueTypeResponse create(CatalogueTypeRequest request);
 
     CatalogueTypeResponse update(Long id, CatalogueTypeRequest request);

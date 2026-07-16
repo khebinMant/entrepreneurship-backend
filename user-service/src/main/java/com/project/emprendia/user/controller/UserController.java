@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -44,6 +45,15 @@ public class UserController {
     public ResponseEntity<UserResponse> update(@PathVariable Long id,
                                                 @Valid @RequestBody UserUpdateRequest request) {
         return ResponseEntity.ok(userService.update(id, request));
+    }
+
+    @GetMapping("/{id}/email")
+    public ResponseEntity<Map<String, String>> getEmail(@PathVariable Long id) {
+        String email = userService.getEmail(id);
+        if (email == null) {
+            return ResponseEntity.ok(Map.of("email", ""));
+        }
+        return ResponseEntity.ok(Map.of("email", email));
     }
 
     @PostMapping("/{id}/change-password")

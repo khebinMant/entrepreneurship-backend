@@ -1,5 +1,6 @@
 package com.project.emprendia.event.controller;
 
+import com.project.emprendia.event.dto.BulkEventInvitationRequest;
 import com.project.emprendia.event.dto.EventInvitationRequest;
 import com.project.emprendia.event.dto.EventInvitationResponse;
 import com.project.emprendia.event.service.EventInvitationService;
@@ -23,11 +24,11 @@ public class EventInvitationController {
     private final EventInvitationService invitationService;
 
     @Operation(summary = "Listar invitaciones por evento con filtro opcional de estado",
-               description = "Obtiene invitaciones de un evento. Puede filtrar por estado: PENDING(1), ACCEPTED(2), REJECTED(3)")
+               description = "Obtiene invitaciones de un evento. Filtra por statusId del catálogo INVITATION_STATUS (PENDING, ACCEPTED, REJECTED)")
     @GetMapping("/event/{eventId}")
     public ResponseEntity<List<EventInvitationResponse>> findByEvent(
             @Parameter(description = "ID del evento") @PathVariable Long eventId,
-            @Parameter(description = "ID del estado (opcional): 1=PENDING, 2=ACCEPTED, 3=REJECTED")
+            @Parameter(description = "statusId del catálogo INVITATION_STATUS (usa GET /api/v1/catalogue-values/by-type/INVITATION_STATUS)")
             @RequestParam(required = false) Long statusId) {
         return ResponseEntity.ok(invitationService.findByEventIdAndStatus(eventId, statusId));
     }
@@ -46,14 +47,23 @@ public class EventInvitationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(invitationService.create(request));
     }
 
+    @Operation(summary = "Crear múltiples invitaciones en lote",
+               description = "Crea varias invitaciones en una sola petición. Cada invitación puede tener su propio mensaje. Los correos se envían automáticamente.")
+    @PostMapping("/bulk")
+    public ResponseEntity<List<EventInvitationResponse>> createBulk(@Valid @RequestBody BulkEventInvitationRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(invitationService.createBulk(request));
+    }
+
     @Operation(summary = "Actualizar estado de invitación",
-               description = "Actualiza el estado de una invitación (PENDING → ACCEPTED/REJECTED)")
+               description = "Actualiza el estado de una invitación. El statusId debe obtenerse del catálogo INVITATION_STATUS (PENDING → ACCEPTED/REJECTED). Si se envía a PENDING, opcionalmente se puede incluir un message para el reenvío del correo.")
     @PatchMapping("/{id}/status")
     public ResponseEntity<EventInvitationResponse> updateStatus(
             @Parameter(description = "ID de la invitación") @PathVariable Long id,
-            @Parameter(description = "Nuevo estado: 1=PENDING, 2=ACCEPTED, 3=REJECTED")
-            @RequestParam Long statusId) {
-        return ResponseEntity.ok(invitationService.updateStatus(id, statusId));
+            @Parameter(description = "statusId del catálogo INVITATION_STATUS")
+            @RequestParam Long statusId,
+            @Parameter(description = "Mensaje personalizado para reenvío (solo aplica cuando statusId = PENDING)")
+            @RequestParam(required = false) String message) {
+        return ResponseEntity.ok(invitationService.updateStatus(id, statusId, message));
     }
 
     @Operation(summary = "Eliminar invitación")

@@ -15,6 +15,8 @@ import lombok.NoArgsConstructor;
 public class EntrepreneurshipBasicResponse {
     private Long entrepreneurshipId;
     private Long userId;
+    private Long categoryId;
+    private String categoryName;
     private String name;
     private String description;
     private String logoUrl;

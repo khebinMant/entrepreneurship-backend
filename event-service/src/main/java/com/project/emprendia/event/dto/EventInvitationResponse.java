@@ -12,6 +12,7 @@ public class EventInvitationResponse {
     private Long eventId;
     private String eventName;
     private Long entrepreneurshipId;
+    private EntrepreneurshipBasicResponse entrepreneurship;
     private Long eventSpaceId;
     private Long invitationStatusId;
     private LocalDateTime sentAt;

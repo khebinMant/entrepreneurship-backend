@@ -6,13 +6,16 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.Map;
+
 /**
  * Feign Client for User Service
  */
 @FeignClient(
     name = "user-service",
     url = "${services.user.url}",
-    path = "/api/v1"
+    path = "/api/v1",
+    configuration = com.project.emprendia.event.configuration.FeignClientConfiguration.class
 )
 public interface UserServiceClient {
 
@@ -20,12 +23,20 @@ public interface UserServiceClient {
     @CircuitBreaker(name = "userService", fallbackMethod = "getUserByIdFallback")
     UserBasicResponse getUserById(@PathVariable Long id);
 
+    @GetMapping("/users/{id}/email")
+    @CircuitBreaker(name = "userService", fallbackMethod = "getUserEmailFallback")
+    Map<String, String> getUserEmail(@PathVariable Long id);
+
     default UserBasicResponse getUserByIdFallback(Long id, Throwable t) {
         return UserBasicResponse.builder()
             .userId(id)
             .firstName("N/A")
             .lastName("N/A")
             .build();
+    }
+
+    default Map<String, String> getUserEmailFallback(Long id, Throwable t) {
+        return Map.of("email", "");
     }
 }
 
