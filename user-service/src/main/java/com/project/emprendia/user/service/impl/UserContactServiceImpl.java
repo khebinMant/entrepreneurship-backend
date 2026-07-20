@@ -4,22 +4,27 @@ import com.project.emprendia.user.domain.AppUser;
 import com.project.emprendia.user.domain.UserContact;
 import com.project.emprendia.user.dto.UserContactRequest;
 import com.project.emprendia.user.dto.UserContactResponse;
+import com.project.emprendia.user.exception.BadRequestException;
 import com.project.emprendia.user.repository.UserContactRepository;
 import com.project.emprendia.user.repository.UserRepository;
+import com.project.emprendia.user.service.KeycloakAdminService;
 import com.project.emprendia.user.service.UserContactService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserContactServiceImpl implements UserContactService {
 
     private final UserContactRepository userContactRepository;
     private final UserRepository userRepository;
+    private final KeycloakAdminService keycloakAdminService;
 
     @Override
     public List<UserContactResponse> findAll() {
@@ -46,8 +51,7 @@ public class UserContactServiceImpl implements UserContactService {
     @Transactional
     public UserContactResponse create(UserContactRequest request) {
         if (Boolean.TRUE.equals(request.getIsPrimary())) {
-            userContactRepository.findByUser_UserId(request.getUserId())
-                    .forEach(c -> c.setIsPrimary(false));
+            throw new BadRequestException("Cannot create a primary contact directly. Use the email update endpoint.");
         }
         UserContact contact = toEntity(request);
         return toResponse(userContactRepository.save(contact));
@@ -58,11 +62,20 @@ public class UserContactServiceImpl implements UserContactService {
     public UserContactResponse update(Long id, UserContactRequest request) {
         UserContact contact = userContactRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User contact not found"));
-        if (Boolean.TRUE.equals(request.getIsPrimary())) {
-            userContactRepository.findByUser_UserId(contact.getUser().getUserId())
-                    .forEach(c -> c.setIsPrimary(false));
-        }
+
         updateEntity(contact, request);
+
+        if (Boolean.TRUE.equals(contact.getIsPrimary()) && request.getContactValue() != null) {
+            AppUser user = contact.getUser();
+            keycloakAdminService.updateUser(
+                    user.getKeycloakId(),
+                    user.getFirstName(),
+                    user.getLastName(),
+                    request.getContactValue()
+            );
+            log.info("Email sincronizado con Keycloak para usuario ID: {}", user.getUserId());
+        }
+
         return toResponse(userContactRepository.save(contact));
     }
 

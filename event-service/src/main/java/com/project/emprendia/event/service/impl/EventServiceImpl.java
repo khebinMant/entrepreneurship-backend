@@ -1,9 +1,12 @@
 package com.project.emprendia.event.service.impl;
 
 import com.project.emprendia.event.client.SharedServiceClient;
+import com.project.emprendia.event.client.UserServiceClient;
 import com.project.emprendia.event.domain.Event;
+import com.project.emprendia.event.dto.CatalogueValueResponse;
 import com.project.emprendia.event.dto.EventRequest;
 import com.project.emprendia.event.dto.EventResponse;
+import com.project.emprendia.event.dto.UserBasicResponse;
 import com.project.emprendia.event.exception.ResourceNotFoundException;
 import com.project.emprendia.event.mapping.mapper.EventMapper;
 import com.project.emprendia.event.repository.EventQueryRepository;
@@ -30,6 +33,7 @@ public class EventServiceImpl implements EventService {
     private final EventQueryRepository eventQueryRepository;
     private final EventMapper eventMapper;
     private final SharedServiceClient sharedServiceClient;
+    private final UserServiceClient userServiceClient;
 
     @Override
     public List<EventResponse> findAll() {
@@ -37,7 +41,7 @@ public class EventServiceImpl implements EventService {
             .map(eventMapper::toResponse)
             .toList();
 
-        events.forEach(this::enrichWithCoverImage);
+        events.forEach(this::enrichEvent);
         return events;
     }
 
@@ -46,7 +50,7 @@ public class EventServiceImpl implements EventService {
         EventResponse response = eventMapper.toResponse(
             eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Event", id)));
-        enrichWithCoverImage(response);
+        enrichEvent(response);
         return response;
     }
 
@@ -56,7 +60,7 @@ public class EventServiceImpl implements EventService {
             .map(eventMapper::toResponse)
             .toList();
 
-        events.forEach(this::enrichWithCoverImage);
+        events.forEach(this::enrichEvent);
         return events;
     }
 
@@ -68,7 +72,7 @@ public class EventServiceImpl implements EventService {
             .map(eventMapper::toResponse)
             .toList();
 
-        events.forEach(this::enrichWithCoverImage);
+        events.forEach(this::enrichEvent);
         return events;
     }
 
@@ -80,7 +84,7 @@ public class EventServiceImpl implements EventService {
 
         return page.map(entity -> {
             EventResponse response = eventMapper.toResponse(entity);
-            enrichWithCoverImage(response);
+            enrichEvent(response);
             return response;
         });
     }
@@ -93,7 +97,7 @@ public class EventServiceImpl implements EventService {
             .map(eventMapper::toResponse)
             .toList();
 
-        events.forEach(this::enrichWithCoverImage);
+        events.forEach(this::enrichEvent);
         return events;
     }
 
@@ -105,7 +109,7 @@ public class EventServiceImpl implements EventService {
 
         return page.map(entity -> {
             EventResponse response = eventMapper.toResponse(entity);
-            enrichWithCoverImage(response);
+            enrichEvent(response);
             return response;
         });
     }
@@ -133,6 +137,73 @@ public class EventServiceImpl implements EventService {
             throw new ResourceNotFoundException("Event", id);
         }
         eventRepository.deleteById(id);
+    }
+
+    /**
+     * Enriquecer el response con datos de usuario, catalogos, ubicacion e imagen
+     */
+    private void enrichEvent(EventResponse response) {
+        enrichWithCreator(response);
+        enrichWithCatalogueValues(response);
+        enrichWithLocations(response);
+        enrichWithCoverImage(response);
+    }
+
+    private void enrichWithCreator(EventResponse response) {
+        try {
+            if (response.getCreatedByUserId() != null) {
+                UserBasicResponse user = userServiceClient.getUserById(response.getCreatedByUserId());
+                user.setContacts(userServiceClient.getUserContacts(response.getCreatedByUserId()));
+                response.setCreatedByUser(user);
+            }
+        } catch (Exception e) {
+            log.warn("Error al obtener creador para evento {}: {}",
+                response.getEventId(), e.getMessage());
+        }
+    }
+
+    private void enrichWithCatalogueValues(EventResponse response) {
+        try {
+            if (response.getEventTypeId() != null) {
+                response.setEventType(sharedServiceClient.getValueById(response.getEventTypeId()));
+            }
+        } catch (Exception e) {
+            log.warn("Error al obtener tipo de evento {}: {}", response.getEventId(), e.getMessage());
+        }
+
+        try {
+            if (response.getEventVisibilityId() != null) {
+                response.setEventVisibility(sharedServiceClient.getValueById(response.getEventVisibilityId()));
+            }
+        } catch (Exception e) {
+            log.warn("Error al obtener visibilidad de evento {}: {}", response.getEventId(), e.getMessage());
+        }
+    }
+
+    private void enrichWithLocations(EventResponse response) {
+        try {
+            if (response.getCountryId() != null) {
+                response.setCountry(sharedServiceClient.getValueById(response.getCountryId()));
+            }
+        } catch (Exception e) {
+            log.warn("Error al obtener pais para evento {}: {}", response.getEventId(), e.getMessage());
+        }
+
+        try {
+            if (response.getProvinceId() != null) {
+                response.setProvince(sharedServiceClient.getValueById(response.getProvinceId()));
+            }
+        } catch (Exception e) {
+            log.warn("Error al obtener provincia para evento {}: {}", response.getEventId(), e.getMessage());
+        }
+
+        try {
+            if (response.getCityId() != null) {
+                response.setCity(sharedServiceClient.getValueById(response.getCityId()));
+            }
+        } catch (Exception e) {
+            log.warn("Error al obtener ciudad para evento {}: {}", response.getEventId(), e.getMessage());
+        }
     }
 
     /**

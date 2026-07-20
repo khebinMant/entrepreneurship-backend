@@ -2,6 +2,8 @@ package com.project.emprendia.user.service.impl;
 
 import com.project.emprendia.user.client.SharedServiceClient;
 import com.project.emprendia.user.domain.AppUser;
+import com.project.emprendia.user.domain.UserContact;
+import com.project.emprendia.user.dto.CatalogueValueResponse;
 import com.project.emprendia.user.dto.ChangePasswordRequest;
 import com.project.emprendia.user.dto.UserRequest;
 import com.project.emprendia.user.dto.UserResponse;
@@ -9,6 +11,7 @@ import com.project.emprendia.user.dto.UserUpdateRequest;
 import com.project.emprendia.user.exception.DuplicateResourceException;
 import com.project.emprendia.user.exception.ResourceNotFoundException;
 import com.project.emprendia.user.mapping.mapper.UserMapper;
+import com.project.emprendia.user.repository.UserContactRepository;
 import com.project.emprendia.user.repository.UserRepository;
 import com.project.emprendia.user.service.KeycloakAdminService;
 import com.project.emprendia.user.service.UserService;
@@ -30,6 +33,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final SharedServiceClient sharedServiceClient;
     private final KeycloakAdminService keycloakAdminService;
+    private final UserContactRepository userContactRepository;
 
     @Override
     public List<UserResponse> findAll() {
@@ -67,7 +71,18 @@ public class UserServiceImpl implements UserService {
         AppUser entity = userMapper.toEntity(request);
         entity.setKeycloakId(keycloakId);
 
-        return userMapper.toResponse(userRepository.save(entity));
+        AppUser savedUser = userRepository.save(entity);
+
+        Long emailContactTypeId = getEmailContactTypeId();
+        UserContact primaryContact = UserContact.builder()
+                .user(savedUser)
+                .contactTypeId(emailContactTypeId)
+                .contactValue(request.getEmail())
+                .isPrimary(true)
+                .build();
+        userContactRepository.save(primaryContact);
+
+        return userMapper.toResponse(savedUser);
     }
 
     @Override
@@ -85,9 +100,48 @@ public class UserServiceImpl implements UserService {
                 request.getLastName(),
                 request.getEmail()
             );
+
+            UserContact primaryContact = userContactRepository
+                    .findByUser_UserIdAndIsPrimaryTrue(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Primary contact not found for user " + id));
+            primaryContact.setContactValue(request.getEmail());
+            userContactRepository.save(primaryContact);
         }
 
         return userMapper.toResponse(userRepository.save(entity));
+    }
+
+    @Override
+    @Transactional
+    public UserResponse updateEmail(Long id, String newEmail) {
+        AppUser entity = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", id));
+
+        keycloakAdminService.updateUser(
+                entity.getKeycloakId(),
+                entity.getFirstName(),
+                entity.getLastName(),
+                newEmail
+        );
+
+        UserContact primaryContact = userContactRepository
+                .findByUser_UserIdAndIsPrimaryTrue(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Primary contact not found for user " + id));
+        primaryContact.setContactValue(newEmail);
+        userContactRepository.save(primaryContact);
+
+        UserResponse response = userMapper.toResponse(entity);
+        enrichWithProfileImage(response);
+        return response;
+    }
+
+    private Long getEmailContactTypeId() {
+        List<CatalogueValueResponse> contactTypes = sharedServiceClient.getValuesByType("CONTACT_TYPE");
+        return contactTypes.stream()
+                .filter(ct -> "EMAIL".equals(ct.getCode()))
+                .findFirst()
+                .map(CatalogueValueResponse::getCatalogueValueId)
+                .orElseThrow(() -> new RuntimeException("EMAIL contact type not found in catalogue CONTACT_TYPE"));
     }
 
     @Override

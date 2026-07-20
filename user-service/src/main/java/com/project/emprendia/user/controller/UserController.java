@@ -1,6 +1,7 @@
 package com.project.emprendia.user.controller;
 
 import com.project.emprendia.user.dto.ChangePasswordRequest;
+import com.project.emprendia.user.dto.EmailUpdateRequest;
 import com.project.emprendia.user.dto.UserRequest;
 import com.project.emprendia.user.dto.UserResponse;
 import com.project.emprendia.user.dto.UserUpdateRequest;
@@ -54,6 +55,12 @@ public class UserController {
             return ResponseEntity.ok(Map.of("email", ""));
         }
         return ResponseEntity.ok(Map.of("email", email));
+    }
+
+    @PutMapping("/{id}/email")
+    public ResponseEntity<UserResponse> updateEmail(@PathVariable Long id,
+                                                     @Valid @RequestBody EmailUpdateRequest request) {
+        return ResponseEntity.ok(userService.updateEmail(id, request.getEmail()));
     }
 
     @PostMapping("/{id}/change-password")
