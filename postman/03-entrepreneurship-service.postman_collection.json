@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "00000003-entrepreneurship-service-0004",
     "name": "03 – Entrepreneurship Service (Puerto 8082)",
-    "description": "Gestión de emprendimientos en la plataforma Emprendia.\n\nTodos los endpoints requieren JWT válido.\n\nBase URL: {{entrepreneurship_url}} = http://localhost:8082\n\nCampos del body (EntrepreneurshipRequest):\n- userId (Long, requerido): ID del dueño (tabla app_user)\n- categoryId (Long, requerido): ID del CatalogueValue con código de categoría\n- name (String, max 150, requerido): Nombre del emprendimiento\n- description (String, opcional): Descripción\n- logoUrl (String, opcional): URL del logo\n- isPhysical (Boolean, requerido): Tiene presencia física\n- isDigital (Boolean, requerido): Opera en forma digital",
+    "description": "Gestión de emprendimientos en la plataforma Emprendia.\n\nTodos los endpoints requieren JWT válido.\n\nBase URL: {{entrepreneurship_url}} = http://localhost:8082\n\nCampos del body (EntrepreneurshipRequest):\n- userId (Long, requerido): ID del dueño (tabla app_user)\n- categoryId (Long, requerido): ID del CatalogueValue con código de categoría\n- name (String, max 150, requerido): Nombre del emprendimiento\n- description (String, opcional): Descripción\n- logoUrl (String, opcional): URL del logo\n- isPhysical (Boolean, requerido): Tiene presencia física\n- isDigital (Boolean, requerido): Opera en forma digital\n- socialLinks (Array<SocialLinkItem>, opcional): Redes sociales\f    · socialPlatformId (Long): ID del catálogo de plataforma social (ej: 89=Facebook, 90=Instagram, 91=WhatsApp)\f    · url (String): URL completa del perfil\f- locations (Array<LocationItem>, opcional): Ubicaciones físicas\f    · countryId (Long, requerido): ID del país\f    · provinceId (Long, requerido): ID de la provincia\f    · cityId (Long, requerido): ID de la ciudad\f    · parishId (Long, opcional): ID de la parroquia\f    · addressLine (String, opcional): Dirección textual\f    · latitude (Decimal, opcional): Latitud GPS\f    · longitude (Decimal, opcional): Longitud GPS\f- portal (PortalItem, opcional): Portal web del emprendimiento\f    · subdomain (String, requerido, único): Subdominio del portal\f    · themeId (Long, requerido): ID del tema visual\f    · isActive (Boolean, opcional, default true): Activo/inactivo\f    · htmlContent (String, opcional): HTML personalizado del portal",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -240,8 +240,11 @@
                 "exec": [
                   "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
                   "const r = pm.response.json();",
-                  "pm.test('Tiene id', () => pm.expect(r).to.have.property('id'));",
-                  "if (r.id) pm.environment.set('last_entrepreneurship_id', r.id);"
+                  "pm.test('Tiene entrepreneurshipId', () => pm.expect(r).to.have.property('entrepreneurshipId'));",
+                  "pm.test('Incluye socialLinks', () => pm.expect(r).to.have.property('socialLinks'));",
+                  "pm.test('Incluye locations', () => pm.expect(r).to.have.property('locations'));",
+                  "pm.test('Incluye portal', () => pm.expect(r).to.have.property('portal'));",
+                  "if (r.entrepreneurshipId) pm.environment.set('last_entrepreneurship_id', r.entrepreneurshipId);"
                 ]
               }
             }
@@ -253,7 +256,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": 1,\n  \"categoryId\": 1,\n  \"name\": \"Mi Emprendimiento Tech\",\n  \"description\": \"Descripción del emprendimiento\",\n  \"logoUrl\": null,\n  \"isPhysical\": true,\n  \"isDigital\": true\n}",
+              "raw": "{\n  \"userId\": 1,\n  \"categoryId\": 1,\n  \"name\": \"Mi Emprendimiento Tech\",\n  \"description\": \"Descripción del emprendimiento\",\n  \"logoUrl\": null,\n  \"isPhysical\": true,\n  \"isDigital\": true,\n  \"socialLinks\": [\n    {\n      \"socialPlatformId\": 89,\n      \"url\": \"https://facebook.com/mi.emprendimiento\"\n    },\n    {\n      \"socialPlatformId\": 90,\n      \"url\": \"https://instagram.com/mi_emprendimiento\"\n    },\n    {\n      \"socialPlatformId\": 91,\n      \"url\": \"https://wa.me/593987654321\"\n    }\n  ],\n  \"locations\": [\n    {\n      \"countryId\": 1,\n      \"provinceId\": 2,\n      \"cityId\": 15,\n      \"parishId\": 100,\n      \"addressLine\": \"Av. Principal 123 y Secundaria, Edificio Central\",\n      \"latitude\": -0.123456,\n      \"longitude\": -78.54321\n    }\n  ],\n  \"portal\": {\n    \"subdomain\": \"mi-emprendimiento-tech\",\n    \"themeId\": 1,\n    \"isActive\": true,\n    \"htmlContent\": \"<h1>Bienvenido a Mi Emprendimiento Tech</h1><p>Descripción del emprendimiento</p>\"\n  }\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -261,9 +264,24 @@
               "host": ["{{entrepreneurship_url}}"],
               "path": ["api", "v1", "entrepreneurships"]
             },
-            "description": "categoryId debe ser un ID válido de catalogue_value con un tipo CATEGORY."
+            "description": "Crea un emprendimiento con sus redes sociales, ubicaciones y portal en una sola transacción.\n\ncategoryId debe ser un ID válido de catalogue_value con un tipo CATEGORY.\nsocialPlatformId para redes sociales: 89=Facebook, 90=Instagram, 91=WhatsApp, etc.\nsubdomain del portal debe ser único."
           },
-          "response": []
+          "response": [
+            {
+              "name": "Ejemplo de respuesta (201 Created)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurships"
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [],
+              "body": "{\n  \"entrepreneurshipId\": 1,\n  \"userId\": 1,\n  \"categoryId\": 1,\n  \"categoryName\": \"Tecnología\",\n  \"name\": \"Mi Emprendimiento Tech\",\n  \"description\": \"Descripción del emprendimiento\",\n  \"logoUrl\": null,\n  \"isPhysical\": true,\n  \"isDigital\": true,\n  \"createdAt\": \"2026-07-20T12:00:00\",\n  \"updatedAt\": null,\n  \"imageUrl\": null,\n  \"imageId\": null,\n  \"socialLinks\": [\n    {\n      \"socialLinkId\": 1,\n      \"entityId\": 1,\n      \"socialPlatformId\": 89,\n      \"socialPlatformName\": null,\n      \"url\": \"https://facebook.com/mi.emprendimiento\",\n      \"createdAt\": \"2026-07-20T12:00:00\"\n    }\n  ],\n  \"locations\": [\n    {\n      \"locationId\": 1,\n      \"entrepreneurshipId\": 1,\n      \"entrepreneurshipName\": \"Mi Emprendimiento Tech\",\n      \"countryId\": 1,\n      \"provinceId\": 2,\n      \"cityId\": 15,\n      \"parishId\": 100,\n      \"addressLine\": \"Av. Principal 123 y Secundaria, Edificio Central\",\n      \"latitude\": -0.123456,\n      \"longitude\": -78.54321,\n      \"createdAt\": \"2026-07-20T12:00:00\"\n    }\n  ],\n  \"portal\": {\n    \"portalId\": 1,\n    \"entityId\": 1,\n    \"subdomain\": \"mi-emprendimiento-tech\",\n    \"themeId\": 1,\n    \"themeName\": null,\n    \"isActive\": true,\n    \"htmlContent\": \"<h1>Bienvenido a Mi Emprendimiento Tech</h1><p>Descripción del emprendimiento</p>\",\n    \"createdAt\": \"2026-07-20T12:00:00\"\n  }\n}"
+            }
+          ]
         },
         {
           "name": "PUT Actualizar emprendimiento",
@@ -285,7 +303,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": 1,\n  \"categoryId\": 1,\n  \"name\": \"Mi Emprendimiento Tech Actualizado\",\n  \"description\": \"Descripción actualizada\",\n  \"logoUrl\": \"https://ejemplo.com/logo.png\",\n  \"isPhysical\": true,\n  \"isDigital\": true\n}",
+              "raw": "{\n  \"userId\": 1,\n  \"categoryId\": 1,\n  \"name\": \"Mi Emprendimiento Tech Actualizado\",\n  \"description\": \"Descripción actualizada\",\n  \"logoUrl\": \"https://ejemplo.com/logo.png\",\n  \"isPhysical\": true,\n  \"isDigital\": true,\n  \"socialLinks\": [\n    {\n      \"socialPlatformId\": 89,\n      \"url\": \"https://facebook.com/nuevo.perfil\"\n    },\n    {\n      \"socialPlatformId\": 90,\n      \"url\": \"https://instagram.com/nuevo_perfil\"\n    }\n  ],\n  \"locations\": [\n    {\n      \"countryId\": 1,\n      \"provinceId\": 2,\n      \"cityId\": 15,\n      \"parishId\": 101,\n      \"addressLine\": \"Av. Actualizada 456\",\n      \"latitude\": -0.234567,\n      \"longitude\": -78.654321\n    }\n  ],\n  \"portal\": {\n    \"subdomain\": \"mi-emprendimiento-actualizado\",\n    \"themeId\": 2,\n    \"isActive\": true,\n    \"htmlContent\": \"<h1>Bienvenido a Mi Emprendimiento Tech Actualizado</h1><p>Descripción actualizada</p>\"\n  }\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
@@ -437,7 +455,7 @@
       ]
     },
     {
-      "name": "Social Links",
+      "name": "Entity Social Links",
       "item": [
         {
           "name": "GET Redes sociales por emprendimiento",
@@ -457,11 +475,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-social-links/entrepreneurship/{{last_entrepreneurship_id}}",
+              "raw": "{{entrepreneurship_url}}/api/v1/entity-social-links/by-entity/{{last_entrepreneurship_id}}",
               "host": ["{{entrepreneurship_url}}"],
-              "path": ["api", "v1", "entrepreneurship-social-links", "entrepreneurship", "{{last_entrepreneurship_id}}"]
+              "path": ["api", "v1", "entity-social-links", "by-entity", "{{last_entrepreneurship_id}}"]
             },
-            "description": "Lista todas las redes sociales de un emprendimiento"
+            "description": "Lista todas las redes sociales de una entidad (evento o emprendimiento)"
           },
           "response": []
         },
@@ -471,9 +489,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-social-links/1",
+              "raw": "{{entrepreneurship_url}}/api/v1/entity-social-links/1",
               "host": ["{{entrepreneurship_url}}"],
-              "path": ["api", "v1", "entrepreneurship-social-links", "1"]
+              "path": ["api", "v1", "entity-social-links", "1"]
             }
           },
           "response": []
@@ -502,15 +520,15 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"entrepreneurshipId\": {{last_entrepreneurship_id}},\n  \"socialPlatformId\": 1,\n  \"url\": \"https://facebook.com/mi.emprendimiento\"\n}",
+              "raw": "{\n  \"entityId\": {{last_entrepreneurship_id}},\n  \"socialPlatformId\": 1,\n  \"url\": \"https://facebook.com/mi.emprendimiento\"\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
-              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-social-links",
+              "raw": "{{entrepreneurship_url}}/api/v1/entity-social-links",
               "host": ["{{entrepreneurship_url}}"],
-              "path": ["api", "v1", "entrepreneurship-social-links"]
+              "path": ["api", "v1", "entity-social-links"]
             },
-            "description": "Agrega Facebook (socialPlatformId = 1)"
+            "description": "Agrega Facebook (socialPlatformId = 1) a una entidad"
           },
           "response": []
         },
@@ -523,15 +541,15 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"entrepreneurshipId\": {{last_entrepreneurship_id}},\n  \"socialPlatformId\": 2,\n  \"url\": \"https://instagram.com/mi_emprendimiento\"\n}",
+              "raw": "{\n  \"entityId\": {{last_entrepreneurship_id}},\n  \"socialPlatformId\": 2,\n  \"url\": \"https://instagram.com/mi_emprendimiento\"\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
-              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-social-links",
+              "raw": "{{entrepreneurship_url}}/api/v1/entity-social-links",
               "host": ["{{entrepreneurship_url}}"],
-              "path": ["api", "v1", "entrepreneurship-social-links"]
+              "path": ["api", "v1", "entity-social-links"]
             },
-            "description": "Agrega Instagram (socialPlatformId = 2)"
+            "description": "Agrega Instagram (socialPlatformId = 2) a una entidad"
           },
           "response": []
         },
@@ -544,15 +562,15 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"entrepreneurshipId\": {{last_entrepreneurship_id}},\n  \"socialPlatformId\": 3,\n  \"url\": \"https://wa.me/593987654321\"\n}",
+              "raw": "{\n  \"entityId\": {{last_entrepreneurship_id}},\n  \"socialPlatformId\": 3,\n  \"url\": \"https://wa.me/593987654321\"\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
-              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-social-links",
+              "raw": "{{entrepreneurship_url}}/api/v1/entity-social-links",
               "host": ["{{entrepreneurship_url}}"],
-              "path": ["api", "v1", "entrepreneurship-social-links"]
+              "path": ["api", "v1", "entity-social-links"]
             },
-            "description": "Agrega WhatsApp (socialPlatformId = 3)"
+            "description": "Agrega WhatsApp (socialPlatformId = 3) a una entidad"
           },
           "response": []
         },
@@ -565,13 +583,13 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"entrepreneurshipId\": {{last_entrepreneurship_id}},\n  \"socialPlatformId\": 1,\n  \"url\": \"https://facebook.com/nuevo.perfil\"\n}",
+              "raw": "{\n  \"entityId\": {{last_entrepreneurship_id}},\n  \"socialPlatformId\": 1,\n  \"url\": \"https://facebook.com/nuevo.perfil\"\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
-              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-social-links/1",
+              "raw": "{{entrepreneurship_url}}/api/v1/entity-social-links/1",
               "host": ["{{entrepreneurship_url}}"],
-              "path": ["api", "v1", "entrepreneurship-social-links", "1"]
+              "path": ["api", "v1", "entity-social-links", "1"]
             }
           },
           "response": []
@@ -582,9 +600,9 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-social-links/1",
+              "raw": "{{entrepreneurship_url}}/api/v1/entity-social-links/1",
               "host": ["{{entrepreneurship_url}}"],
-              "path": ["api", "v1", "entrepreneurship-social-links", "1"]
+              "path": ["api", "v1", "entity-social-links", "1"]
             }
           },
           "response": []
@@ -592,7 +610,7 @@
       ]
     },
     {
-      "name": "Portals",
+      "name": "Entity Portals",
       "item": [
         {
           "name": "GET Portal por emprendimiento",
@@ -613,11 +631,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-portals/entrepreneurship/{{last_entrepreneurship_id}}",
+              "raw": "{{entrepreneurship_url}}/api/v1/entity-portals/by-entity/{{last_entrepreneurship_id}}",
               "host": ["{{entrepreneurship_url}}"],
-              "path": ["api", "v1", "entrepreneurship-portals", "entrepreneurship", "{{last_entrepreneurship_id}}"]
+              "path": ["api", "v1", "entity-portals", "by-entity", "{{last_entrepreneurship_id}}"]
             },
-            "description": "Obtiene el portal web del emprendimiento (único por emprendimiento)"
+            "description": "Obtiene el portal web de una entidad (evento o emprendimiento)"
           },
           "response": []
         },
@@ -627,9 +645,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-portals/1",
+              "raw": "{{entrepreneurship_url}}/api/v1/entity-portals/1",
               "host": ["{{entrepreneurship_url}}"],
-              "path": ["api", "v1", "entrepreneurship-portals", "1"]
+              "path": ["api", "v1", "entity-portals", "1"]
             }
           },
           "response": []
@@ -660,15 +678,15 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"entrepreneurshipId\": {{last_entrepreneurship_id}},\n  \"subdomain\": \"mi-emprendimiento-unico\",\n  \"themeId\": 1,\n  \"isActive\": true\n}",
+              "raw": "{\n  \"entityId\": {{last_entrepreneurship_id}},\n  \"subdomain\": \"mi-emprendimiento-unico\",\n  \"themeId\": 1,\n  \"isActive\": true\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
-              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-portals",
+              "raw": "{{entrepreneurship_url}}/api/v1/entity-portals",
               "host": ["{{entrepreneurship_url}}"],
-              "path": ["api", "v1", "entrepreneurship-portals"]
+              "path": ["api", "v1", "entity-portals"]
             },
-            "description": "Crea portal web con subdomain único (ej: mi-emprendimiento.emprendia.com)"
+            "description": "Crea portal web con subdomain único para una entidad (evento o emprendimiento)"
           },
           "response": []
         },
@@ -681,13 +699,13 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"entrepreneurshipId\": {{last_entrepreneurship_id}},\n  \"subdomain\": \"nuevo-subdomain\",\n  \"themeId\": 2,\n  \"isActive\": false\n}",
+              "raw": "{\n  \"entityId\": {{last_entrepreneurship_id}},\n  \"subdomain\": \"nuevo-subdomain\",\n  \"themeId\": 2,\n  \"isActive\": false\n}",
               "options": { "raw": { "language": "json" } }
             },
             "url": {
-              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-portals/{{last_portal_id}}",
+              "raw": "{{entrepreneurship_url}}/api/v1/entity-portals/{{last_portal_id}}",
               "host": ["{{entrepreneurship_url}}"],
-              "path": ["api", "v1", "entrepreneurship-portals", "{{last_portal_id}}"]
+              "path": ["api", "v1", "entity-portals", "{{last_portal_id}}"]
             }
           },
           "response": []
@@ -698,9 +716,9 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurship-portals/1",
+              "raw": "{{entrepreneurship_url}}/api/v1/entity-portals/1",
               "host": ["{{entrepreneurship_url}}"],
-              "path": ["api", "v1", "entrepreneurship-portals", "1"]
+              "path": ["api", "v1", "entity-portals", "1"]
             }
           },
           "response": []

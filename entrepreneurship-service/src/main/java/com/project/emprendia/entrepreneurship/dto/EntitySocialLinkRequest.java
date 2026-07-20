@@ -11,10 +11,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EntrepreneurshipSocialLinkRequest {
+public class EntitySocialLinkRequest {
     
-    @NotNull(message = "Entrepreneurship ID is required")
-    private Long entrepreneurshipId;
+    @NotNull(message = "Entity ID is required")
+    private Long entityId;
     
     @NotNull(message = "Social platform ID is required")
     private Long socialPlatformId;
@@ -22,4 +22,3 @@ public class EntrepreneurshipSocialLinkRequest {
     @NotBlank(message = "URL is required")
     private String url;
 }
-

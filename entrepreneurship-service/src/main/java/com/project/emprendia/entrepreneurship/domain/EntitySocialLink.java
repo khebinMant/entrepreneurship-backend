@@ -13,18 +13,16 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "entrepreneurship_social_link")
-public class EntrepreneurshipSocialLink {
+@Table(name = "entity_social_link")
+public class EntitySocialLink {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "social_link_id")
     private Long socialLinkId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "entrepreneurship_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_social_link_entrepreneurship"))
-    private Entrepreneurship entrepreneurship;
+    @Column(name = "entity_id", nullable = false)
+    private Long entityId;
 
     @Column(name = "social_platform_id", nullable = false)
     private Long socialPlatformId;

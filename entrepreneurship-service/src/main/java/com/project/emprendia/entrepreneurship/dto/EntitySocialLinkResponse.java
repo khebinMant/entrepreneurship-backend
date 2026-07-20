@@ -11,14 +11,11 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EntrepreneurshipPortalResponse {
-    private Long portalId;
-    private Long entrepreneurshipId;
-    private String entrepreneurshipName;
-    private String subdomain;
-    private Long themeId;
-    private String themeName;
-    private Boolean isActive;
+public class EntitySocialLinkResponse {
+    private Long socialLinkId;
+    private Long entityId;
+    private Long socialPlatformId;
+    private String socialPlatformName;
+    private String url;
     private LocalDateTime createdAt;
 }
-

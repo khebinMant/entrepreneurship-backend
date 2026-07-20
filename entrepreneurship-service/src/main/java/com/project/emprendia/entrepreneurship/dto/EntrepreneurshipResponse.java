@@ -1,12 +1,17 @@
 package com.project.emprendia.entrepreneurship.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class EntrepreneurshipResponse {
     private Long entrepreneurshipId;
     private Long userId;
@@ -20,7 +25,10 @@ public class EntrepreneurshipResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // Imagen del logo/principal del emprendimiento
     private String imageUrl;
     private Long imageId;
+
+    private List<EntitySocialLinkResponse> socialLinks;
+    private List<EntrepreneurshipLocationResponse> locations;
+    private EntityPortalResponse portal;
 }

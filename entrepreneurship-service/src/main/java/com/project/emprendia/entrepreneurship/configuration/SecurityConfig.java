@@ -36,8 +36,8 @@ public class SecurityConfig {
                 "/api/v1/entrepreneurships/**",
                 "/api/v1/categories/**",
                 "/api/v1/entrepreneurship-locations/**",
-                "/api/v1/entrepreneurship-social-links/**",
-                "/api/v1/entrepreneurship-portals/**")
+                "/api/v1/entity-social-links/**",
+                "/api/v1/entity-portals/**")
             .cors(cors -> {})
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session ->
