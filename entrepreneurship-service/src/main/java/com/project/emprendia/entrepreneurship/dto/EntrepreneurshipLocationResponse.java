@@ -23,6 +23,7 @@ public class EntrepreneurshipLocationResponse {
     private String addressLine;
     private BigDecimal latitude;
     private BigDecimal longitude;
+    private String mapsUrl;
     private LocalDateTime createdAt;
 }
 

@@ -3,12 +3,18 @@ package com.project.emprendia.event.service.impl;
 import com.project.emprendia.event.client.SharedServiceClient;
 import com.project.emprendia.event.client.UserServiceClient;
 import com.project.emprendia.event.domain.Event;
+import com.project.emprendia.event.domain.EntityPortal;
+import com.project.emprendia.event.domain.EntitySocialLink;
 import com.project.emprendia.event.dto.CatalogueValueResponse;
+import com.project.emprendia.event.dto.EntityPortalResponse;
+import com.project.emprendia.event.dto.EntitySocialLinkResponse;
 import com.project.emprendia.event.dto.EventRequest;
 import com.project.emprendia.event.dto.EventResponse;
 import com.project.emprendia.event.dto.UserBasicResponse;
 import com.project.emprendia.event.exception.ResourceNotFoundException;
 import com.project.emprendia.event.mapping.mapper.EventMapper;
+import com.project.emprendia.event.repository.EntityPortalRepository;
+import com.project.emprendia.event.repository.EntitySocialLinkRepository;
 import com.project.emprendia.event.repository.EventQueryRepository;
 import com.project.emprendia.event.repository.EventRepository;
 import com.project.emprendia.event.service.EventService;
@@ -18,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,6 +41,8 @@ public class EventServiceImpl implements EventService {
     private final EventMapper eventMapper;
     private final SharedServiceClient sharedServiceClient;
     private final UserServiceClient userServiceClient;
+    private final EntitySocialLinkRepository entitySocialLinkRepository;
+    private final EntityPortalRepository entityPortalRepository;
 
     @Override
     public List<EventResponse> findAll() {
@@ -118,7 +127,42 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public EventResponse create(EventRequest request) {
         Event entity = eventMapper.toEntity(request);
-        return eventMapper.toResponse(eventRepository.save(entity));
+        Event saved = eventRepository.save(entity);
+        Long entityId = saved.getEventId();
+
+        if (!CollectionUtils.isEmpty(request.getSocialLinks())) {
+            List<EntitySocialLink> links = request.getSocialLinks().stream()
+                .map(sl -> EntitySocialLink.builder()
+                    .entityId(entityId)
+                    .socialPlatformId(sl.getSocialPlatformId())
+                    .url(sl.getUrl())
+                    .build())
+                .toList();
+            entitySocialLinkRepository.saveAll(links);
+        }
+
+        String defaultHtml = String.format(
+            "<h1>Bienvenido a %s</h1><p>Portal de presentaci\u00f3n del evento.</p>",
+            saved.getName()
+        );
+        String portalSubdomain = request.getPortal() != null && request.getPortal().getSubdomain() != null
+            ? request.getPortal().getSubdomain() : "evt-" + entityId;
+        Long portalThemeId = request.getPortal() != null ? request.getPortal().getThemeId() : null;
+        Boolean portalIsActive = request.getPortal() != null && request.getPortal().getIsActive() != null
+            ? request.getPortal().getIsActive() : true;
+        String portalHtml = request.getPortal() != null && request.getPortal().getHtmlContent() != null
+            ? request.getPortal().getHtmlContent() : defaultHtml;
+
+        EntityPortal portal = EntityPortal.builder()
+            .entityId(entityId)
+            .subdomain(portalSubdomain)
+            .themeId(portalThemeId)
+            .isActive(portalIsActive)
+            .htmlContent(portalHtml)
+            .build();
+        entityPortalRepository.save(portal);
+
+        return findById(entityId);
     }
 
     @Override
@@ -127,7 +171,39 @@ public class EventServiceImpl implements EventService {
         Event entity = eventRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Event", id));
         eventMapper.updateEntityFromRequest(request, entity);
-        return eventMapper.toResponse(eventRepository.save(entity));
+        eventRepository.save(entity);
+
+        if (request.getSocialLinks() != null) {
+            entitySocialLinkRepository.deleteByEntityId(id);
+            if (!request.getSocialLinks().isEmpty()) {
+                List<EntitySocialLink> links = request.getSocialLinks().stream()
+                    .map(sl -> EntitySocialLink.builder()
+                        .entityId(id)
+                        .socialPlatformId(sl.getSocialPlatformId())
+                        .url(sl.getUrl())
+                        .build())
+                    .toList();
+                entitySocialLinkRepository.saveAll(links);
+            }
+        }
+
+        if (request.getPortal() != null) {
+            EntityPortal portal = entityPortalRepository.findByEntityId(id)
+                .orElse(EntityPortal.builder().entityId(id).build());
+            if (request.getPortal().getSubdomain() != null) {
+                portal.setSubdomain(request.getPortal().getSubdomain());
+            }
+            if (request.getPortal().getThemeId() != null) {
+                portal.setThemeId(request.getPortal().getThemeId());
+            }
+            portal.setIsActive(request.getPortal().getIsActive() != null ? request.getPortal().getIsActive() : true);
+            if (request.getPortal().getHtmlContent() != null) {
+                portal.setHtmlContent(request.getPortal().getHtmlContent());
+            }
+            entityPortalRepository.save(portal);
+        }
+
+        return findById(id);
     }
 
     @Override
@@ -136,6 +212,8 @@ public class EventServiceImpl implements EventService {
         if (!eventRepository.existsById(id)) {
             throw new ResourceNotFoundException("Event", id);
         }
+        entitySocialLinkRepository.deleteByEntityId(id);
+        entityPortalRepository.deleteByEntityId(id);
         eventRepository.deleteById(id);
     }
 
@@ -147,6 +225,7 @@ public class EventServiceImpl implements EventService {
         enrichWithCatalogueValues(response);
         enrichWithLocations(response);
         enrichWithCoverImage(response);
+        enrichWithRelatedData(response);
     }
 
     private void enrichWithCreator(EventResponse response) {
@@ -235,7 +314,48 @@ public class EventServiceImpl implements EventService {
         } catch (Exception e) {
             log.warn("Error al obtener imagen para evento {}: {}",
                 response.getEventId(), e.getMessage());
-            // No fallar si no se puede obtener la imagen
+        }
+    }
+
+    private void enrichWithRelatedData(EventResponse response) {
+        try {
+            Long entityId = response.getEventId();
+            List<CatalogueValueResponse> socialPlatforms = sharedServiceClient.getValuesByType("SOCIAL_PLATFORM");
+            response.setSocialLinks(
+                entitySocialLinkRepository.findByEntityId(entityId).stream()
+                    .map(sl -> {
+                        String platformName = socialPlatforms.stream()
+                            .filter(v -> v.getCatalogueValueId().equals(sl.getSocialPlatformId()))
+                            .map(CatalogueValueResponse::getName)
+                            .findFirst()
+                            .orElse(null);
+                        return EntitySocialLinkResponse.builder()
+                            .socialLinkId(sl.getSocialLinkId())
+                            .entityId(entityId)
+                            .socialPlatformId(sl.getSocialPlatformId())
+                            .socialPlatformName(platformName)
+                            .url(sl.getUrl())
+                            .createdAt(sl.getCreatedAt())
+                            .build();
+                    })
+                    .toList()
+            );
+            response.setPortal(
+                entityPortalRepository.findByEntityId(entityId)
+                    .map(p -> EntityPortalResponse.builder()
+                        .portalId(p.getPortalId())
+                        .entityId(entityId)
+                        .subdomain(p.getSubdomain())
+                        .themeId(p.getThemeId())
+                        .isActive(p.getIsActive())
+                        .htmlContent(p.getHtmlContent())
+                        .createdAt(p.getCreatedAt())
+                        .build())
+                    .orElse(null)
+            );
+        } catch (Exception e) {
+            log.warn("Error al enriquecer datos relacionados para evento {}: {}",
+                response.getEventId(), e.getMessage());
         }
     }
 }

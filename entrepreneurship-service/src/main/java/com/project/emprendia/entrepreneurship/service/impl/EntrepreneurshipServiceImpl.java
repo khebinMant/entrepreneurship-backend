@@ -1,17 +1,20 @@
 package com.project.emprendia.entrepreneurship.service.impl;
 
 import com.project.emprendia.entrepreneurship.client.SharedServiceClient;
+import com.project.emprendia.entrepreneurship.client.UserServiceClient;
 import com.project.emprendia.entrepreneurship.domain.Category;
 import com.project.emprendia.entrepreneurship.domain.Entrepreneurship;
 import com.project.emprendia.entrepreneurship.domain.EntrepreneurshipLocation;
 import com.project.emprendia.entrepreneurship.domain.EntityPortal;
 import com.project.emprendia.entrepreneurship.domain.EntitySocialLink;
+import com.project.emprendia.entrepreneurship.dto.CatalogueValueResponse;
 import com.project.emprendia.entrepreneurship.dto.EntrepreneurshipLocationResponse;
 import com.project.emprendia.entrepreneurship.dto.EntrepreneurshipRequest;
 import com.project.emprendia.entrepreneurship.dto.EntrepreneurshipResponse;
 import com.project.emprendia.entrepreneurship.dto.EntityPortalResponse;
 import com.project.emprendia.entrepreneurship.dto.EntitySocialLinkResponse;
 import com.project.emprendia.entrepreneurship.dto.ImageGalleryResponse;
+import com.project.emprendia.entrepreneurship.dto.UserBasicResponse;
 import com.project.emprendia.entrepreneurship.exception.ResourceNotFoundException;
 import com.project.emprendia.entrepreneurship.mapping.mapper.EntrepreneurshipMapper;
 import com.project.emprendia.entrepreneurship.repository.CategoryRepository;
@@ -42,6 +45,7 @@ public class EntrepreneurshipServiceImpl implements EntrepreneurshipService {
     private final CategoryRepository categoryRepository;
     private final EntrepreneurshipMapper entrepreneurshipMapper;
     private final SharedServiceClient sharedServiceClient;
+    private final UserServiceClient userServiceClient;
     private final EntitySocialLinkRepository entitySocialLinkRepository;
     private final EntityPortalRepository entityPortalRepository;
     private final EntrepreneurshipLocationRepository entrepreneurshipLocationRepository;
@@ -54,6 +58,7 @@ public class EntrepreneurshipServiceImpl implements EntrepreneurshipService {
 
         entrepreneurships.forEach(this::enrichWithLogo);
         entrepreneurships.forEach(this::enrichWithRelatedData);
+        entrepreneurships.forEach(this::enrichWithCreator);
         return entrepreneurships;
     }
 
@@ -65,6 +70,7 @@ public class EntrepreneurshipServiceImpl implements EntrepreneurshipService {
 
         enrichWithLogo(entrepreneurshipResponse);
         enrichWithRelatedData(entrepreneurshipResponse);
+        enrichWithCreator(entrepreneurshipResponse);
         return entrepreneurshipResponse;
     }
 
@@ -76,6 +82,7 @@ public class EntrepreneurshipServiceImpl implements EntrepreneurshipService {
 
         entrepreneurships.forEach(this::enrichWithLogo);
         entrepreneurships.forEach(this::enrichWithRelatedData);
+        entrepreneurships.forEach(this::enrichWithCreator);
         return entrepreneurships;
     }
 
@@ -88,6 +95,7 @@ public class EntrepreneurshipServiceImpl implements EntrepreneurshipService {
 
         entrepreneurships.forEach(this::enrichWithLogo);
         entrepreneurships.forEach(this::enrichWithRelatedData);
+        entrepreneurships.forEach(this::enrichWithCreator);
         return entrepreneurships;
     }
 
@@ -100,6 +108,7 @@ public class EntrepreneurshipServiceImpl implements EntrepreneurshipService {
             EntrepreneurshipResponse response = entrepreneurshipMapper.toResponse(entity);
             enrichWithLogo(response);
             enrichWithRelatedData(response);
+            enrichWithCreator(response);
             return response;
         });
     }
@@ -113,6 +122,7 @@ public class EntrepreneurshipServiceImpl implements EntrepreneurshipService {
 
         entrepreneurships.forEach(this::enrichWithLogo);
         entrepreneurships.forEach(this::enrichWithRelatedData);
+        entrepreneurships.forEach(this::enrichWithCreator);
         return entrepreneurships;
     }
 
@@ -125,6 +135,7 @@ public class EntrepreneurshipServiceImpl implements EntrepreneurshipService {
             EntrepreneurshipResponse response = entrepreneurshipMapper.toResponse(entity);
             enrichWithLogo(response);
             enrichWithRelatedData(response);
+            enrichWithCreator(response);
             return response;
         });
     }
@@ -161,6 +172,7 @@ public class EntrepreneurshipServiceImpl implements EntrepreneurshipService {
                     .addressLine(l.getAddressLine())
                     .latitude(l.getLatitude())
                     .longitude(l.getLongitude())
+                    .mapsUrl(l.getMapsUrl())
                     .build())
                 .toList();
             entrepreneurshipLocationRepository.saveAll(locs);
@@ -221,18 +233,19 @@ public class EntrepreneurshipServiceImpl implements EntrepreneurshipService {
             entrepreneurshipLocationRepository.deleteByEntrepreneurshipEntrepreneurshipId(id);
             if (!request.getLocations().isEmpty()) {
                 List<EntrepreneurshipLocation> locs = request.getLocations().stream()
-                    .map(l -> EntrepreneurshipLocation.builder()
-                        .entrepreneurship(entity)
-                        .countryId(l.getCountryId())
-                        .provinceId(l.getProvinceId())
-                        .cityId(l.getCityId())
-                        .parishId(l.getParishId())
-                        .addressLine(l.getAddressLine())
-                        .latitude(l.getLatitude())
-                        .longitude(l.getLongitude())
-                        .build())
-                    .toList();
-                entrepreneurshipLocationRepository.saveAll(locs);
+                .map(l -> EntrepreneurshipLocation.builder()
+                    .entrepreneurship(entity)
+                    .countryId(l.getCountryId())
+                    .provinceId(l.getProvinceId())
+                    .cityId(l.getCityId())
+                    .parishId(l.getParishId())
+                    .addressLine(l.getAddressLine())
+                    .latitude(l.getLatitude())
+                    .longitude(l.getLongitude())
+                    .mapsUrl(l.getMapsUrl())
+                    .build())
+                .toList();
+            entrepreneurshipLocationRepository.saveAll(locs);
             }
         }
 
@@ -308,19 +321,24 @@ public class EntrepreneurshipServiceImpl implements EntrepreneurshipService {
                         .addressLine(loc.getAddressLine())
                         .latitude(loc.getLatitude())
                         .longitude(loc.getLongitude())
+                        .mapsUrl(loc.getMapsUrl())
                         .createdAt(loc.getCreatedAt())
                         .build())
                     .toList()
             );
             response.setSocialLinks(
                 entitySocialLinkRepository.findByEntityId(entityId).stream()
-                    .map(sl -> EntitySocialLinkResponse.builder()
-                        .socialLinkId(sl.getSocialLinkId())
-                        .entityId(entityId)
-                        .socialPlatformId(sl.getSocialPlatformId())
-                        .url(sl.getUrl())
-                        .createdAt(sl.getCreatedAt())
-                        .build())
+                    .map(sl -> {
+                        String platformName = resolveSocialPlatformName(sl.getSocialPlatformId());
+                        return EntitySocialLinkResponse.builder()
+                            .socialLinkId(sl.getSocialLinkId())
+                            .entityId(entityId)
+                            .socialPlatformId(sl.getSocialPlatformId())
+                            .socialPlatformName(platformName)
+                            .url(sl.getUrl())
+                            .createdAt(sl.getCreatedAt())
+                            .build();
+                    })
                     .toList()
             );
             response.setPortal(
@@ -339,6 +357,33 @@ public class EntrepreneurshipServiceImpl implements EntrepreneurshipService {
         } catch (Exception e) {
             log.warn("Error al enriquecer datos relacionados para emprendimiento {}: {}",
                 response.getEntrepreneurshipId(), e.getMessage());
+        }
+    }
+
+    private void enrichWithCreator(EntrepreneurshipResponse response) {
+        if (response.getUserId() == null) return;
+        try {
+            UserBasicResponse user = userServiceClient.getUserById(response.getUserId());
+            user.setContacts(userServiceClient.getUserContacts(response.getUserId()));
+            response.setCreatedByUser(user);
+        } catch (Exception e) {
+            log.warn("Error al enriquecer creador para emprendimiento {}: {}",
+                response.getEntrepreneurshipId(), e.getMessage());
+        }
+    }
+
+    private String resolveSocialPlatformName(Long socialPlatformId) {
+        if (socialPlatformId == null) return null;
+        try {
+            List<CatalogueValueResponse> values = sharedServiceClient.getValuesByType("SOCIAL_PLATFORM");
+            return values.stream()
+                .filter(v -> v.getCatalogueValueId().equals(socialPlatformId))
+                .map(CatalogueValueResponse::getName)
+                .findFirst()
+                .orElse(null);
+        } catch (Exception e) {
+            log.warn("Error al resolver nombre de plataforma social {}: {}", socialPlatformId, e.getMessage());
+            return null;
         }
     }
 }

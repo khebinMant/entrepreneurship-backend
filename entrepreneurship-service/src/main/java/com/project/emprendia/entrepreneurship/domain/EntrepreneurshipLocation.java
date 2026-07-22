@@ -48,6 +48,9 @@ public class EntrepreneurshipLocation {
     @Column(name = "longitude", precision = 9, scale = 6)
     private BigDecimal longitude;
 
+    @Column(name = "maps_url", columnDefinition = "TEXT")
+    private String mapsUrl;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

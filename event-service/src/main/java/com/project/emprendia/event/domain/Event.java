@@ -73,6 +73,9 @@ public class Event {
     @Column(name = "address_line", columnDefinition = "TEXT")
     private String addressLine;
 
+    @Column(name = "maps_url", columnDefinition = "TEXT")
+    private String mapsUrl;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

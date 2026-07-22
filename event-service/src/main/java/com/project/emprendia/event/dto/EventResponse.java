@@ -1,13 +1,18 @@
 package com.project.emprendia.event.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class EventResponse {
     private Long eventId;
     private Long createdByUserId;
@@ -26,21 +31,21 @@ public class EventResponse {
     private Long provinceId;
     private Long cityId;
     private String addressLine;
+    private String mapsUrl;
     private LocalDateTime createdAt;
 
-    // Enriquecido desde user-service
     private UserBasicResponse createdByUser;
 
-    // Enriquecido desde shared-service (catalogos)
     private CatalogueValueResponse eventType;
     private CatalogueValueResponse eventVisibility;
 
-    // Enriquecido desde shared-service (ubicacion)
     private CatalogueValueResponse country;
     private CatalogueValueResponse province;
     private CatalogueValueResponse city;
 
-    // Imagen de portada desde shared-service
     private String imageUrl;
     private Long imageId;
+
+    private List<EntitySocialLinkResponse> socialLinks;
+    private EntityPortalResponse portal;
 }

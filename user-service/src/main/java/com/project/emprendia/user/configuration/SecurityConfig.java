@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/v1/users/*/email").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/users/{id}").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/user-contacts/**").permitAll()
+                .requestMatchers("/api/v1/auth/**").permitAll()
                 .anyRequest().authenticated())
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint(authenticationEntryPoint())

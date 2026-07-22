@@ -15,6 +15,7 @@ public interface EntrepreneurshipMapper {
     @Mapping(target = "portal", ignore = true)
     @Mapping(target = "imageUrl", ignore = true)
     @Mapping(target = "imageId", ignore = true)
+    @Mapping(target = "createdByUser", ignore = true)
     EntrepreneurshipResponse toResponse(Entrepreneurship entity);
 
     @Mapping(target = "entrepreneurshipId", ignore = true)

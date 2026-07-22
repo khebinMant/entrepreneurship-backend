@@ -5,9 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Basic user information DTO from user-service
- */
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,5 +17,7 @@ public class UserBasicResponse {
     private String firstName;
     private String lastName;
     private String profilePictureUrl;
+    private String email;
+    private List<UserContactResponse> contacts;
 }
 

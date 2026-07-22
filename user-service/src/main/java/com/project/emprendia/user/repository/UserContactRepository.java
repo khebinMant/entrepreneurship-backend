@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface UserContactRepository extends JpaRepository<UserContact, Long> {
     List<UserContact> findByUser_UserId(Long userId);
     Optional<UserContact> findByUser_UserIdAndIsPrimaryTrue(Long userId);
+    Optional<UserContact> findByContactTypeIdAndContactValue(Long contactTypeId, String contactValue);
 }

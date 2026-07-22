@@ -39,5 +39,7 @@ public class EntrepreneurshipLocationRequest {
     @DecimalMin(value = "-180.0", message = "Longitude must be >= -180")
     @DecimalMax(value = "180.0", message = "Longitude must be <= 180")
     private BigDecimal longitude;
+
+    private String mapsUrl;
 }
 

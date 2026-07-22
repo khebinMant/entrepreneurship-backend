@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "00000002-user-service-emprendia-0003",
     "name": "02 – User Service (Puerto 8081)",
-    "description": "Gestión de usuarios de la plataforma Emprendia.\n\nTodos los endpoints requieren JWT válido (Bearer {{access_token}}).\n\nBase URL: {{user_url}} = http://localhost:8081\n\n⚠️ FLUJO CORRECTO PARA CREAR USUARIO:\n1. Colección 00-Auth-Keycloak > Get Admin Token\n2. Colección 00-Auth-Keycloak > Create User en Keycloak (genera {{keycloak_user_id}})\n3. Luego sí: POST Crear usuario (usa {{keycloak_user_id}} automáticamente)\n\nCampos del body:\n- keycloakId (String): ID del usuario en Keycloak (claim 'sub' del JWT)\n- firstName (String): Nombre\n- lastName (String): Apellido\n- profilePictureUrl (String, opcional): URL de foto de perfil\n\n✏️ PUT Actualizar usuario:\n- firstName (String, opcional): Nombre\n- lastName (String, opcional): Apellido\n- profilePictureUrl (String, opcional): URL de foto de perfil\n- email (String, opcional): Correo a actualizar (se sincroniza con Keycloak)\n\n🔑 POST Cambiar contraseña:\n- newPassword (String, requerido): Nueva contraseña (se actualiza en Keycloak)\n\n📬 Endpoints por usuario:\n- GET /user-addresses/user/{userId}\n- GET /user-contacts/user/{userId}\n- GET /user-identifications/user/{userId}\n\n⭐ isPrimary: al crear/actualizar un contacto o dirección con isPrimary=true, los demás registros del mismo usuario se desmarcan automáticamente.",
+    "description": "Gestión de usuarios de la plataforma Emprendia.\n\nTodos los endpoints requieren JWT válido (Bearer {{access_token}}).\n\nBase URL: {{user_url}} = http://localhost:8081\n\n⚠️ FLUJO CORRECTO PARA CREAR USUARIO:\n1. Colección 00-Auth-Keycloak > Get Admin Token\n2. Colección 00-Auth-Keycloak > Create User en Keycloak (genera {{keycloak_user_id}})\n3. Luego sí: POST Crear usuario (usa {{keycloak_user_id}} automáticamente)\n\nCampos del body:\n- keycloakId (String): ID del usuario en Keycloak (claim 'sub' del JWT)\n- firstName (String): Nombre\n- lastName (String): Apellido\n- profilePictureUrl (String, opcional): URL de foto de perfil\n\n✏️ PUT Actualizar usuario:\n- firstName (String, opcional): Nombre\n- lastName (String, opcional): Apellido\n- profilePictureUrl (String, opcional): URL de foto de perfil\n- email (String, opcional): Correo a actualizar (se sincroniza con Keycloak)\n\n🔑 POST Cambiar contraseña:\n- newPassword (String, requerido): Nueva contraseña (se actualiza en Keycloak)\n\n🔐 Recuperación de contraseña (públicos, no requieren token):\n- POST /api/v1/auth/forgot-password → Recibe email, envía correo con enlace\n- POST /api/v1/auth/reset-password → Recibe token + newPassword, restablece en Keycloak\n\n📬 Endpoints por usuario:\n- GET /user-addresses/user/{userId}\n- GET /user-contacts/user/{userId}\n- GET /user-identifications/user/{userId}\n\n⭐ isPrimary: al crear/actualizar un contacto o dirección con isPrimary=true, los demás registros del mismo usuario se desmarcan automáticamente.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -814,6 +814,79 @@
               "host": ["{{user_url}}"],
               "path": ["actuator", "health"]
             }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth (Password Reset)",
+      "item": [
+        {
+          "name": "POST Solicitar recuperaci\u00f3n de contrase\u00f1a",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Mensaje de confirmaci\u00f3n', () => pm.expect(pm.response.json().message).to.include('email'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"usuario@ejemplo.com\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{user_url}}/api/v1/auth/forgot-password",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "auth", "forgot-password"]
+            },
+            "description": "P\u00fablico. Env\u00eda un correo con enlace de recuperaci\u00f3n si el email est\u00e1 registrado. Siempre responde 200 aunque el email no exista (seguridad)."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Restablecer contrase\u00f1a",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Contrase\u00f1a restablecida', () => pm.expect(pm.response.json().message).to.include('reset'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"uuid-received-via-email\",\n  \"newPassword\": \"nueva-contrase\u00f1a-123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{user_url}}/api/v1/auth/reset-password",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "auth", "reset-password"]
+            },
+            "description": "P\u00fablico. Restablece la contrase\u00f1a usando el token recibido por correo."
           },
           "response": []
         }

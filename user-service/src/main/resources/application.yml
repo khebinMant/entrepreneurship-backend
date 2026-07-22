@@ -20,11 +20,31 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:muyapp2020@gmail.com}
+    password: "nirt vyud gumb hkwo"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 10000
+          timeout: 30000
+          writetimeout: 10000
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/emprendia}
+
+app:
+  reset-password:
+    token-expiration-minutes: ${TOKEN_EXPIRATION_MINUTES:30}
+    base-url: ${FRONTEND_BASE_URL:http://localhost:4200}
 
 server:
   port: 8081
@@ -104,6 +124,21 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI}
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:muyapp2020@gmail.com}
+    password: "nirt vyud gumb hkwo"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 10000
+          timeout: 30000
+          writetimeout: 10000
 
 server:
   port: 8081
@@ -136,6 +171,21 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI}
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:muyapp2020@gmail.com}
+    password: "nirt vyud gumb hkwo"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 10000
+          timeout: 30000
+          writetimeout: 10000
 
 server:
   port: 8081

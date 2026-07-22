@@ -31,4 +31,5 @@ public class EntrepreneurshipResponse {
     private List<EntitySocialLinkResponse> socialLinks;
     private List<EntrepreneurshipLocationResponse> locations;
     private EntityPortalResponse portal;
+    private UserBasicResponse createdByUser;
 }
