@@ -16,7 +16,7 @@ import java.util.List;
  */
 @FeignClient(
     name = "shared-service",
-    url = "${services.shared.url}",
+    url = "${SERVICES_SHARED_URL:http://localhost:8084}",
     configuration = com.project.emprendia.entrepreneurship.configuration.FeignClientConfiguration.class
 )
 public interface SharedServiceClient {

@@ -16,7 +16,7 @@ import java.util.Map;
  */
 @FeignClient(
     name = "shared-service",
-    url = "${services.shared.url}",
+    url = "${SERVICES_SHARED_URL:http://localhost:8084}",
     configuration = com.project.emprendia.event.configuration.FeignClientConfiguration.class
 )
 public interface SharedServiceClient {

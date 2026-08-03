@@ -9,6 +9,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,6 +37,9 @@ import java.io.InputStream;
 public class FileServeController {
 
     private final StorageService storageService;
+
+    @Value("${storage.local.base-url:http://localhost:8084/api/files}")
+    private String baseUrl;
 
     /**
      * Serve user profile image
@@ -108,9 +112,9 @@ public class FileServeController {
      */
     private ResponseEntity<Resource> serveFile(String relativePath) {
         try {
-            // Build full URL (this is a bit hacky but works for local storage)
-            String fileUrl = "http://localhost:8084/api/files/" + relativePath;
-            
+            // Build full URL using the configured storage base URL
+            String fileUrl = baseUrl + "/" + relativePath;
+
             InputStream inputStream = storageService.getFile(fileUrl);
             Resource resource = new InputStreamResource(inputStream);
 

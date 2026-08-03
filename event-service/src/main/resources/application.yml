@@ -2,57 +2,15 @@ spring:
   application:
     name: event-service
 
----
-spring:
-  config:
-    activate:
-      on-profile: local
-  datasource:
-    url: jdbc:postgresql://localhost:5433/postgres
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:emprendia2026}
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/emprendia}
-  mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:muyapp2020@gmail.com}
-    password: "nirt vyud gumb hkwo"
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
-          connectiontimeout: 10000
-          timeout: 30000
-          writetimeout: 10000
-
 server:
   port: 8083
 
-# Mail Configuration
 mail:
   from: ${MAIL_FROM:muyapp2020@gmail.com}
 
-# Frontend URL for email links
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:4200}
 
-# Feign Client Configuration
 feign:
   client:
     config:
@@ -63,7 +21,6 @@ feign:
   circuitbreaker:
     enabled: true
 
-# Services URLs
 services:
   shared:
     url: ${SHARED_SERVICE_URL:http://localhost:8084}
@@ -72,7 +29,6 @@ services:
   entrepreneurship:
     url: ${ENTREPRENEURSHIP_SERVICE_URL:http://localhost:8082}
 
-# Resilience4j Circuit Breaker
 resilience4j:
   circuitbreaker:
     instances:
@@ -125,6 +81,45 @@ management:
 spring:
   config:
     activate:
+      on-profile: local
+  datasource:
+    url: jdbc:postgresql://localhost:5433/postgres
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:emprendia2026}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/emprendia}
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:muyapp2020@gmail.com}
+    password: "nirt vyud gumb hkwo"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 10000
+          timeout: 30000
+          writetimeout: 10000
+
+---
+spring:
+  config:
+    activate:
       on-profile: dev
   datasource:
     url: ${DB_URL}
@@ -158,15 +153,6 @@ spring:
           connectiontimeout: 10000
           timeout: 30000
           writetimeout: 10000
-
-server:
-  port: 8083
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
 
 ---
 spring:
@@ -206,8 +192,8 @@ spring:
           timeout: 30000
           writetimeout: 10000
 
-server:
-  port: 8083
+app:
+  frontend-url: ${FRONTEND_URL:https://emprendia-app.netlify.app}
 
 management:
   endpoints:

@@ -2,6 +2,63 @@ spring:
   application:
     name: user-service
 
+app:
+  reset-password:
+    token-expiration-minutes: ${TOKEN_EXPIRATION_MINUTES:30}
+    base-url: ${FRONTEND_BASE_URL:http://localhost:4200}
+
+server:
+  port: 8081
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 10000
+        loggerLevel: BASIC
+  circuitbreaker:
+    enabled: true
+
+services:
+  shared:
+    url: ${SHARED_SERVICE_URL:http://localhost:8084}
+
+keycloak:
+  admin:
+    server-url: ${KEYCLOAK_ADMIN_URL:http://localhost:8080}
+    username: ${KEYCLOAK_ADMIN_USERNAME:admin}
+    password: ${KEYCLOAK_ADMIN_PASSWORD:admin}
+  realm: ${KEYCLOAK_REALM:emprendia}
+  role:
+    default-role-name: ${KEYCLOAK_DEFAULT_ROLE:comun-user}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      sharedService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+  timelimiter:
+    instances:
+      sharedService:
+        timeoutDuration: 10s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
 ---
 spring:
   config:
@@ -41,67 +98,6 @@ spring:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/emprendia}
 
-app:
-  reset-password:
-    token-expiration-minutes: ${TOKEN_EXPIRATION_MINUTES:30}
-    base-url: ${FRONTEND_BASE_URL:http://localhost:4200}
-
-server:
-  port: 8081
-
-# Feign Client Configuration
-feign:
-  client:
-    config:
-      default:
-        connectTimeout: 5000
-        readTimeout: 10000
-        loggerLevel: BASIC
-  circuitbreaker:
-    enabled: true
-
-# Services URLs
-services:
-  shared:
-    url: ${SHARED_SERVICE_URL:http://localhost:8084}
-
-# Keycloak Admin Configuration
-keycloak:
-  admin:
-    server-url: ${KEYCLOAK_ADMIN_URL:http://localhost:8080}
-    username: ${KEYCLOAK_ADMIN_USERNAME:admin}
-    password: ${KEYCLOAK_ADMIN_PASSWORD:admin}
-  realm: ${KEYCLOAK_REALM:emprendia}
-  role:
-    default-role-name: ${KEYCLOAK_DEFAULT_ROLE:comun-user}
-
-# Resilience4j Circuit Breaker
-resilience4j:
-  circuitbreaker:
-    instances:
-      sharedService:
-        registerHealthIndicator: true
-        slidingWindowSize: 10
-        minimumNumberOfCalls: 5
-        permittedNumberOfCallsInHalfOpenState: 3
-        automaticTransitionFromOpenToHalfOpenEnabled: true
-        waitDurationInOpenState: 10s
-        failureRateThreshold: 50
-        eventConsumerBufferSize: 10
-  timelimiter:
-    instances:
-      sharedService:
-        timeoutDuration: 10s
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
-  endpoint:
-    health:
-      show-details: always
-
 ---
 spring:
   config:
@@ -139,15 +135,6 @@ spring:
           connectiontimeout: 10000
           timeout: 30000
           writetimeout: 10000
-
-server:
-  port: 8081
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
 
 ---
 spring:
@@ -187,8 +174,9 @@ spring:
           timeout: 30000
           writetimeout: 10000
 
-server:
-  port: 8081
+app:
+  reset-password:
+    base-url: ${FRONTEND_BASE_URL:https://emprendia-app.netlify.app}
 
 management:
   endpoints:

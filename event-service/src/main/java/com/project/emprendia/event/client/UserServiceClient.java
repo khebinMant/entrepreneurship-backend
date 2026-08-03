@@ -16,7 +16,7 @@ import java.util.Map;
  */
 @FeignClient(
     name = "user-service",
-    url = "${services.user.url}",
+    url = "${SERVICES_USER_URL:http://localhost:8081}",
     path = "/api/v1",
     configuration = com.project.emprendia.event.configuration.FeignClientConfiguration.class
 )

@@ -3,6 +3,7 @@ package com.project.emprendia.user.configuration;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,14 +12,12 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
-
 /**
  * Security configuration for the User Service.
  *
- * All endpoints require a valid JWT token.
- * Fine-grained ownership rules are enforced via @PreAuthorize at service layer.
- *
- * Zero-trust: validates token independently from any API Gateway.
+ * Public endpoints use a separate filter chain (Order 1) WITHOUT JWT validation,
+ * so the browser can call them even when no valid token is present.
+ * Protected endpoints (Order 2) require a valid JWT token.
  */
 @Configuration
 @EnableWebSecurity
@@ -26,20 +25,36 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    @Order(1)
+    public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
+        http
+            .securityMatchers(matchers -> matchers
+                .requestMatchers("/actuator/**")
+                .requestMatchers(HttpMethod.POST, "/api/v1/users")
+                .requestMatchers(HttpMethod.GET, "/api/v1/users/*/email")
+                .requestMatchers(HttpMethod.PUT, "/api/v1/users/*/email")
+                .requestMatchers(HttpMethod.GET, "/api/v1/users/*")
+                .requestMatchers(HttpMethod.GET, "/api/v1/users/keycloak/**")
+                .requestMatchers(HttpMethod.GET, "/api/v1/user-contacts/**")
+                .requestMatchers("/api/v1/auth/**"))
+            .cors(cors -> {})
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
+    public SecurityFilterChain protectedFilterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> {})
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/users/*/email").permitAll()
-                .requestMatchers(HttpMethod.PUT, "/api/v1/users/*/email").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/users/{id}").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/user-contacts/**").permitAll()
-                .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated())
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint(authenticationEntryPoint())

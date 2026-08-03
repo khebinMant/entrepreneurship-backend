@@ -1,0 +1,131 @@
+services:
+
+  shared-service:
+    build:
+      context: ../shared-service
+      dockerfile: Dockerfile
+    container_name: emprendia-shared
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5433/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: emprendia2026
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8080/realms/emprendia
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://host.docker.internal:8080/realms/emprendia/protocol/openid-connect/certs
+      STORAGE_TYPE: local
+      STORAGE_LOCAL_PATH: /app/uploads
+    volumes:
+      - ../uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  user-service:
+    build:
+      context: ../user-service
+      dockerfile: Dockerfile
+    container_name: emprendia-user
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5433/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: emprendia2026
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8080/realms/emprendia
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://host.docker.internal:8080/realms/emprendia/protocol/openid-connect/certs
+      KEYCLOAK_ADMIN_URL: http://host.docker.internal:8080
+      KEYCLOAK_ADMIN_USERNAME: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KEYCLOAK_REALM: emprendia
+      KEYCLOAK_DEFAULT_ROLE: comun-user
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      FRONTEND_BASE_URL: ${FRONTEND_URL}
+      TOKEN_EXPIRATION_MINUTES: ${TOKEN_EXPIRATION_MINUTES}
+      SERVICES_SHARED_URL: http://shared-service:8084
+    depends_on:
+      shared-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  entrepreneurship-service:
+    build:
+      context: ../entrepreneurship-service
+      dockerfile: Dockerfile
+    container_name: emprendia-entrepreneurship
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5433/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: emprendia2026
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8080/realms/emprendia
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://host.docker.internal:8080/realms/emprendia/protocol/openid-connect/certs
+      SERVICES_SHARED_URL: http://shared-service:8084
+      SERVICES_USER_URL: http://user-service:8081
+    depends_on:
+      shared-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  event-service:
+    build:
+      context: ../event-service
+      dockerfile: Dockerfile
+    container_name: emprendia-event
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5433/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: emprendia2026
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8080/realms/emprendia
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://host.docker.internal:8080/realms/emprendia/protocol/openid-connect/certs
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM: ${MAIL_FROM}
+      FRONTEND_URL: ${FRONTEND_URL}
+      SERVICES_SHARED_URL: http://shared-service:8084
+      SERVICES_USER_URL: http://user-service:8081
+      SERVICES_ENTREPRENEURSHIP_URL: http://entrepreneurship-service:8082
+    depends_on:
+      shared-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      entrepreneurship-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s

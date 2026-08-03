@@ -2,34 +2,9 @@ spring:
   application:
     name: entrepreneurship-service
 
----
-spring:
-  config:
-    activate:
-      on-profile: local
-  datasource:
-    url: jdbc:postgresql://localhost:5433/postgres
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:emprendia2026}
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/emprendia}
-
 server:
   port: 8082
 
-# Feign Client Configuration
 feign:
   client:
     config:
@@ -40,14 +15,12 @@ feign:
   circuitbreaker:
     enabled: true
 
-# Services URLs
 services:
   shared:
     url: ${SHARED_SERVICE_URL:http://localhost:8084}
   user:
     url: ${USER_SERVICE_URL:http://localhost:8081}
 
-# Resilience4j Circuit Breaker
 resilience4j:
   circuitbreaker:
     instances:
@@ -89,6 +62,30 @@ management:
 spring:
   config:
     activate:
+      on-profile: local
+  datasource:
+    url: jdbc:postgresql://localhost:5433/postgres
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:emprendia2026}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/emprendia}
+
+---
+spring:
+  config:
+    activate:
       on-profile: dev
   datasource:
     url: ${DB_URL}
@@ -107,15 +104,6 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI}
-
-server:
-  port: 8082
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
 
 ---
 spring:
@@ -139,9 +127,6 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI}
-
-server:
-  port: 8082
 
 management:
   endpoints:

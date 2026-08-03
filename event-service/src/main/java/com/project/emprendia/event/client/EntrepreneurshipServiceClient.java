@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
  */
 @FeignClient(
     name = "entrepreneurship-service",
-    url = "${services.entrepreneurship.url}",
+    url = "${SERVICES_ENTREPRENEURSHIP_URL:http://localhost:8082}",
     configuration = com.project.emprendia.event.configuration.FeignClientConfiguration.class
 )
 public interface EntrepreneurshipServiceClient {

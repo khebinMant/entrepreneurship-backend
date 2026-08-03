@@ -1,7 +1,10 @@
 package com.project.emprendia.event.controller;
 
+import com.project.emprendia.event.dto.EventCreatorStatsResponse;
+import com.project.emprendia.event.dto.EventParticipationStatsResponse;
 import com.project.emprendia.event.dto.EventRequest;
 import com.project.emprendia.event.dto.EventResponse;
+import com.project.emprendia.event.dto.GlobalEventAnalyticsResponse;
 import com.project.emprendia.event.service.EventService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,22 @@ import java.util.List;
 public class EventController {
 
     private final EventService eventService;
+
+    @GetMapping("/stats/creator/{userId}")
+    public ResponseEntity<EventCreatorStatsResponse> getCreatorStats(@PathVariable Long userId) {
+        return ResponseEntity.ok(eventService.getCreatorStats(userId));
+    }
+
+    @GetMapping("/stats/participation/entrepreneurship/{entrepreneurshipId}")
+    public ResponseEntity<EventParticipationStatsResponse> getParticipationStats(
+            @PathVariable Long entrepreneurshipId) {
+        return ResponseEntity.ok(eventService.getParticipationStatsByEntrepreneurship(entrepreneurshipId));
+    }
+
+    @GetMapping("/analytics/global")
+    public ResponseEntity<GlobalEventAnalyticsResponse> getGlobalEventAnalytics() {
+        return ResponseEntity.ok(eventService.getGlobalEventAnalytics());
+    }
 
     @GetMapping
     public ResponseEntity<List<EventResponse>> findAll() {

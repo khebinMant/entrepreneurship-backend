@@ -28,4 +28,10 @@ public interface EventEntrepreneurshipParticipantRepository extends JpaRepositor
     @Query("SELECT COUNT(e) FROM EventEntrepreneurshipParticipant e " +
            "WHERE e.event.eventId = :eventId")
     long countParticipantsByEventId(@Param("eventId") Long eventId);
+
+    @Query("SELECT COUNT(e) FROM EventEntrepreneurshipParticipant e " +
+           "WHERE e.event.createdByUserId = :userId")
+    long countByEventCreatorUserId(@Param("userId") Long userId);
+
+    long countByEntrepreneurshipId(Long entrepreneurshipId);
 }

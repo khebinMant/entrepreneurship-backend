@@ -1,0 +1,176 @@
+services:
+
+  # ── Shared Service ──────────────────────────────
+  shared-service:
+    build:
+      context: ../shared-service
+      dockerfile: Dockerfile
+    container_name: emprendia-shared
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://emprendia-db:5432/emprendia_db
+      DB_USERNAME: emprendia
+      DB_PASSWORD: emprendia2026
+      KEYCLOAK_ISSUER_URI: https://emprendia.duckdns.org/realms/emprendia
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: https://emprendia.duckdns.org/realms/emprendia
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: https://emprendia.duckdns.org/realms/emprendia/protocol/openid-connect/certs
+      STORAGE_TYPE: local
+      STORAGE_LOCAL_PATH: /app/uploads
+      STORAGE_LOCAL_BASE_URL: https://emprendia.duckdns.org/api/files
+    volumes:
+      - ../uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  # ── User Service ────────────────────────────────
+  user-service:
+    build:
+      context: ../user-service
+      dockerfile: Dockerfile
+    container_name: emprendia-user
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://emprendia-db:5432/emprendia_db
+      DB_USERNAME: emprendia
+      DB_PASSWORD: emprendia2026
+      KEYCLOAK_ISSUER_URI: https://emprendia.duckdns.org/realms/emprendia
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: https://emprendia.duckdns.org/realms/emprendia
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: https://emprendia.duckdns.org/realms/emprendia/protocol/openid-connect/certs
+      KEYCLOAK_ADMIN_URL: http://emprendia-keycloak:8080
+      KEYCLOAK_ADMIN_USERNAME: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KEYCLOAK_REALM: emprendia
+      KEYCLOAK_DEFAULT_ROLE: comun-user
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      FRONTEND_BASE_URL: ${FRONTEND_URL}
+      TOKEN_EXPIRATION_MINUTES: ${TOKEN_EXPIRATION_MINUTES}
+      SHARED_SERVICE_URL: http://shared-service:8084
+    depends_on:
+      shared-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  # ── Entrepreneurship Service ────────────────────
+  entrepreneurship-service:
+    build:
+      context: ../entrepreneurship-service
+      dockerfile: Dockerfile
+    container_name: emprendia-entrepreneurship
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://emprendia-db:5432/emprendia_db
+      DB_USERNAME: emprendia
+      DB_PASSWORD: emprendia2026
+      KEYCLOAK_ISSUER_URI: https://emprendia.duckdns.org/realms/emprendia
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: https://emprendia.duckdns.org/realms/emprendia
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: https://emprendia.duckdns.org/realms/emprendia/protocol/openid-connect/certs
+      SHARED_SERVICE_URL: http://shared-service:8084
+      USER_SERVICE_URL: http://user-service:8081
+    depends_on:
+      shared-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  # ── Event Service ───────────────────────────────
+  event-service:
+    build:
+      context: ../event-service
+      dockerfile: Dockerfile
+    container_name: emprendia-event
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://emprendia-db:5432/emprendia_db
+      DB_USERNAME: emprendia
+      DB_PASSWORD: emprendia2026
+      KEYCLOAK_ISSUER_URI: https://emprendia.duckdns.org/realms/emprendia
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: https://emprendia.duckdns.org/realms/emprendia
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: https://emprendia.duckdns.org/realms/emprendia/protocol/openid-connect/certs
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM: ${MAIL_FROM}
+      FRONTEND_URL: ${FRONTEND_URL}
+      SHARED_SERVICE_URL: http://shared-service:8084
+      USER_SERVICE_URL: http://user-service:8081
+      ENTREPRENEURSHIP_SERVICE_URL: http://entrepreneurship-service:8082
+    depends_on:
+      shared-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      entrepreneurship-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+# ── Gateway Service ─────────────────────────────
+  gateway-service:
+    build:
+      context: ../gateway-service
+      dockerfile: Dockerfile
+    container_name: emprendia-gateway
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    environment:
+      GATEWAY_HOST_SHARED: http://shared-service:8084
+      GATEWAY_HOST_USER: http://user-service:8081
+      GATEWAY_HOST_ENTREPRENEURSHIP: http://entrepreneurship-service:8082
+      GATEWAY_HOST_EVENT: http://event-service:8083
+    depends_on:
+      shared-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      entrepreneurship-service:
+        condition: service_started
+      event-service:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8090/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+# ── Red externa (para conectar con PostgreSQL y Keycloak existentes) ──
+networks:
+  default:
+    external:
+      name: emprendia-net

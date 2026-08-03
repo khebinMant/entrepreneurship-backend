@@ -8,13 +8,18 @@ import com.project.emprendia.event.domain.EntitySocialLink;
 import com.project.emprendia.event.dto.CatalogueValueResponse;
 import com.project.emprendia.event.dto.EntityPortalResponse;
 import com.project.emprendia.event.dto.EntitySocialLinkResponse;
+import com.project.emprendia.event.dto.EventCreatorStatsResponse;
+import com.project.emprendia.event.dto.EventParticipationStatsResponse;
 import com.project.emprendia.event.dto.EventRequest;
 import com.project.emprendia.event.dto.EventResponse;
+import com.project.emprendia.event.dto.GlobalEventAnalyticsResponse;
 import com.project.emprendia.event.dto.UserBasicResponse;
 import com.project.emprendia.event.exception.ResourceNotFoundException;
 import com.project.emprendia.event.mapping.mapper.EventMapper;
 import com.project.emprendia.event.repository.EntityPortalRepository;
 import com.project.emprendia.event.repository.EntitySocialLinkRepository;
+import com.project.emprendia.event.repository.EventEntrepreneurshipParticipantRepository;
+import com.project.emprendia.event.repository.EventInvitationRepository;
 import com.project.emprendia.event.repository.EventQueryRepository;
 import com.project.emprendia.event.repository.EventRepository;
 import com.project.emprendia.event.service.EventService;
@@ -43,6 +48,8 @@ public class EventServiceImpl implements EventService {
     private final UserServiceClient userServiceClient;
     private final EntitySocialLinkRepository entitySocialLinkRepository;
     private final EntityPortalRepository entityPortalRepository;
+    private final EventInvitationRepository eventInvitationRepository;
+    private final EventEntrepreneurshipParticipantRepository eventParticipantRepository;
 
     @Override
     public List<EventResponse> findAll() {
@@ -215,6 +222,132 @@ public class EventServiceImpl implements EventService {
         entitySocialLinkRepository.deleteByEntityId(id);
         entityPortalRepository.deleteByEntityId(id);
         eventRepository.deleteById(id);
+    }
+
+    @Override
+    public EventCreatorStatsResponse getCreatorStats(Long userId) {
+        long total = eventRepository.countByCreatedByUserId(userId);
+
+        List<EventCreatorStatsResponse.TypeCount> byType =
+            eventRepository.countByEventTypeGroupedByCreator(userId).stream()
+                .map(row -> {
+                    Long id = (Long) row[0];
+                    String name = resolveCatalogueName(id);
+                    return EventCreatorStatsResponse.TypeCount.builder()
+                        .id(id).name(name).count((Long) row[1]).build();
+                })
+                .toList();
+
+        List<EventCreatorStatsResponse.TypeCount> byVisibility =
+            eventRepository.countByVisibilityGroupedByCreator(userId).stream()
+                .map(row -> {
+                    Long id = (Long) row[0];
+                    String name = resolveCatalogueName(id);
+                    return EventCreatorStatsResponse.TypeCount.builder()
+                        .id(id).name(name).count((Long) row[1]).build();
+                })
+                .toList();
+
+        long upcoming = eventRepository.countByCreatedByUserIdAndStartDatetimeAfter(userId, LocalDateTime.now());
+        long past = eventRepository.countByCreatedByUserIdAndEndDatetimeBefore(userId, LocalDateTime.now());
+        long totalInvitations = eventInvitationRepository.countByEvent_CreatedByUserId(userId);
+        long totalParticipants = eventParticipantRepository.countByEventCreatorUserId(userId);
+
+        List<EventResponse> recent = eventRepository
+            .findTop5ByCreatedByUserIdOrderByCreatedAtDesc(userId).stream()
+            .map(eventMapper::toResponse)
+            .toList();
+        recent.forEach(this::enrichEvent);
+
+        return EventCreatorStatsResponse.builder()
+            .totalEvents(total)
+            .byType(byType)
+            .byVisibility(byVisibility)
+            .upcomingEvents(upcoming)
+            .pastEvents(past)
+            .totalInvitationsSent(totalInvitations)
+            .totalParticipants(totalParticipants)
+            .recentEvents(recent)
+            .build();
+    }
+
+    @Override
+    public EventParticipationStatsResponse getParticipationStatsByEntrepreneurship(Long entrepreneurshipId) {
+        List<EventParticipationStatsResponse.StatusCount> byStatus =
+            eventInvitationRepository.countByStatusGroupedByEntrepreneurship(entrepreneurshipId).stream()
+                .map(row -> {
+                    Long statusId = (Long) row[0];
+                    String statusName = resolveCatalogueName(statusId);
+                    return EventParticipationStatsResponse.StatusCount.builder()
+                        .statusId(statusId).statusName(statusName).count((Long) row[1]).build();
+                })
+                .toList();
+
+        long totalInvitations = byStatus.stream().mapToLong(EventParticipationStatsResponse.StatusCount::getCount).sum();
+        long totalParticipations = eventParticipantRepository.countByEntrepreneurshipId(entrepreneurshipId);
+
+        return EventParticipationStatsResponse.builder()
+            .totalInvitations(totalInvitations)
+            .byStatus(byStatus)
+            .totalParticipations(totalParticipations)
+            .build();
+    }
+
+    @Override
+    public GlobalEventAnalyticsResponse getGlobalEventAnalytics() {
+        long total = eventRepository.count();
+
+        List<GlobalEventAnalyticsResponse.TypeCount> byType =
+            eventRepository.countByEventTypeGrouped().stream()
+                .map(row -> GlobalEventAnalyticsResponse.TypeCount.builder()
+                    .id((Long) row[0]).name(resolveCatalogueName((Long) row[0])).count((Long) row[1]).build())
+                .toList();
+
+        List<GlobalEventAnalyticsResponse.TypeCount> byVisibility =
+            eventRepository.countByVisibilityGrouped().stream()
+                .map(row -> GlobalEventAnalyticsResponse.TypeCount.builder()
+                    .id((Long) row[0]).name(resolveCatalogueName((Long) row[0])).count((Long) row[1]).build())
+                .toList();
+
+        long upcoming = eventRepository.countByStartDatetimeAfter(LocalDateTime.now());
+        long past = eventRepository.countByEndDatetimeBefore(LocalDateTime.now());
+
+        long totalInvitations = eventInvitationRepository.count();
+        long totalParticipants = eventParticipantRepository.count();
+
+        List<GlobalEventAnalyticsResponse.MonthlyCount> monthly =
+            eventRepository.countByMonth().stream()
+                .map(row -> GlobalEventAnalyticsResponse.MonthlyCount.builder()
+                    .year((Integer) row[0]).month((Integer) row[1]).count((Long) row[2]).build())
+                .toList();
+
+        List<EventResponse> recent = eventRepository.findTop5ByOrderByCreatedAtDesc().stream()
+            .map(eventMapper::toResponse)
+            .toList();
+        recent.forEach(this::enrichEvent);
+
+        return GlobalEventAnalyticsResponse.builder()
+            .totalEvents(total)
+            .byType(byType)
+            .byVisibility(byVisibility)
+            .upcomingEvents(upcoming)
+            .pastEvents(past)
+            .totalInvitationsSent(totalInvitations)
+            .totalParticipants(totalParticipants)
+            .monthlyActivity(monthly)
+            .recentEvents(recent)
+            .build();
+    }
+
+    private String resolveCatalogueName(Long catalogueValueId) {
+        if (catalogueValueId == null) return "N/A";
+        try {
+            CatalogueValueResponse value = sharedServiceClient.getValueById(catalogueValueId);
+            return value != null ? value.getName() : "N/A";
+        } catch (Exception e) {
+            log.warn("Error al resolver nombre de catálogo {}: {}", catalogueValueId, e.getMessage());
+            return "N/A";
+        }
     }
 
     /**

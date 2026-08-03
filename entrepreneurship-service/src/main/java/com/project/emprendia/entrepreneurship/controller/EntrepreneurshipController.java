@@ -2,6 +2,8 @@ package com.project.emprendia.entrepreneurship.controller;
 
 import com.project.emprendia.entrepreneurship.dto.EntrepreneurshipRequest;
 import com.project.emprendia.entrepreneurship.dto.EntrepreneurshipResponse;
+import com.project.emprendia.entrepreneurship.dto.EntrepreneurshipStatsResponse;
+import com.project.emprendia.entrepreneurship.dto.GlobalAnalyticsResponse;
 import com.project.emprendia.entrepreneurship.service.EntrepreneurshipService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,16 @@ import java.util.List;
 public class EntrepreneurshipController {
 
     private final EntrepreneurshipService entrepreneurshipService;
+
+    @GetMapping("/stats/user/{userId}")
+    public ResponseEntity<EntrepreneurshipStatsResponse> getStatsByUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(entrepreneurshipService.getStatsByUserId(userId));
+    }
+
+    @GetMapping("/analytics/global")
+    public ResponseEntity<GlobalAnalyticsResponse> getGlobalAnalytics() {
+        return ResponseEntity.ok(entrepreneurshipService.getGlobalAnalytics());
+    }
 
     @GetMapping
     public ResponseEntity<List<EntrepreneurshipResponse>> findAll() {

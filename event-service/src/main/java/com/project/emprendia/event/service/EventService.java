@@ -1,7 +1,10 @@
 package com.project.emprendia.event.service;
 
+import com.project.emprendia.event.dto.EventCreatorStatsResponse;
+import com.project.emprendia.event.dto.EventParticipationStatsResponse;
 import com.project.emprendia.event.dto.EventRequest;
 import com.project.emprendia.event.dto.EventResponse;
+import com.project.emprendia.event.dto.GlobalEventAnalyticsResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -27,6 +30,12 @@ public interface EventService {
 
     Page<EventResponse> searchPaginated(String name, Long eventTypeId, Long eventVisibilityId,
                                          LocalDateTime fromDate, LocalDateTime toDate, Pageable pageable);
+
+    EventCreatorStatsResponse getCreatorStats(Long userId);
+
+    EventParticipationStatsResponse getParticipationStatsByEntrepreneurship(Long entrepreneurshipId);
+
+    GlobalEventAnalyticsResponse getGlobalEventAnalytics();
 
     EventResponse create(EventRequest request);
 

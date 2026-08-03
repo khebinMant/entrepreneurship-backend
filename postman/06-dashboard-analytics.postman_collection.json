@@ -1,0 +1,154 @@
+{
+  "info": {
+    "_postman_id": "00000006-dashboard-analytics-0007",
+    "name": "06 – Dashboard & Analytics",
+    "description": "Endpoints para las métricas del dashboard.\n\nBase URLs:\n- {{entrepreneurship_url}} = http://localhost:8082\n- {{event_url}} = http://localhost:8083\n- {{user_url}} = http://localhost:8081\n\nTodos requieren JWT válido ({{access_token}}).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Global – Admin Dashboard",
+      "description": "Métricas globales de toda la plataforma. Llamar a cada servicio por separado.",
+      "item": [
+        {
+          "name": "Entrepreneurship – GET Analytics Global",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurships/analytics/global",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurships", "analytics", "global"]
+            },
+            "description": "Retorna:\n- totalEntrepreneurships\n- totalCategories\n- byCategory: distribución por categoría\n- byType: physical / digital / both\n- monthlyActivity: arreglo [{year, month, count}] para gráfico de actividad mensual\n- recentEntrepreneurships: últimos 5"
+          },
+          "response": [
+            {
+              "name": "Ejemplo de respuesta",
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n    \"totalEntrepreneurships\": 10,\n    \"totalCategories\": 5,\n    \"byCategory\": [],\n    \"byType\": {\"physical\": 4, \"digital\": 3, \"both\": 3},\n    \"monthlyActivity\": [{\"year\": 2026, \"month\": 5, \"count\": 5}],\n    \"recentEntrepreneurships\": []\n}"
+            }
+          ]
+        },
+        {
+          "name": "Event – GET Analytics Global",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/events/analytics/global",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "events", "analytics", "global"]
+            },
+            "description": "Retorna:\n- totalEvents\n- byType: distribución por tipo de evento\n- byVisibility: distribución por visibilidad\n- upcomingEvents: próximos\n- pastEvents: pasados\n- totalInvitationsSent: invitaciones enviadas\n- totalParticipants: participantes confirmados\n- monthlyActivity: arreglo [{year, month, count}] para gráfico de actividad mensual\n- recentEvents: últimos 5"
+          },
+          "response": [
+            {
+              "name": "Ejemplo de respuesta",
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n    \"totalEvents\": 5,\n    \"byType\": [],\n    \"byVisibility\": [],\n    \"upcomingEvents\": 2,\n    \"pastEvents\": 3,\n    \"totalInvitationsSent\": 50,\n    \"totalParticipants\": 25,\n    \"monthlyActivity\": [],\n    \"recentEvents\": []\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Per-User – My Entrepreneurships",
+      "description": "Métricas de emprendimientos del usuario. Llamar a entrepreneurship-service.",
+      "item": [
+        {
+          "name": "GET Estadísticas por usuario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{entrepreneurship_url}}/api/v1/entrepreneurships/stats/user/1",
+              "host": ["{{entrepreneurship_url}}"],
+              "path": ["api", "v1", "entrepreneurships", "stats", "user", "1"]
+            },
+            "description": "Retorna:\n- totalEntrepreneurships: total de emprendimientos del usuario\n- byCategory: distribución por categoría (categoryId, categoryName, count)\n- byType: distribución physical / digital / both\n- recentEntrepreneurships: últimos 5 emprendimientos creados (con enriched data)"
+          },
+          "response": [
+            {
+              "name": "Ejemplo de respuesta",
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n    \"totalEntrepreneurships\": 5,\n    \"byCategory\": [],\n    \"byType\": {\"physical\": 2, \"digital\": 1, \"both\": 2},\n    \"recentEntrepreneurships\": []\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Per-User – My Events as Creator",
+      "description": "Métricas del usuario como creador de eventos. Llamar a event-service.",
+      "item": [
+        {
+          "name": "GET Estadísticas de eventos creados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/events/stats/creator/1",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "events", "stats", "creator", "1"]
+            },
+            "description": "Retorna:\n- totalEvents: eventos creados por el usuario\n- byType: distribución por tipo (PHYSICAL, VIRTUAL)\n- byVisibility: distribución por visibilidad (PUBLIC, PRIVATE)\n- upcomingEvents: próximos\n- pastEvents: pasados\n- totalInvitationsSent: invitaciones enviadas\n- totalParticipants: participantes confirmados\n- recentEvents: últimos 5 eventos"
+          },
+          "response": [
+            {
+              "name": "Ejemplo de respuesta",
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n    \"totalEvents\": 3,\n    \"byType\": [],\n    \"byVisibility\": [],\n    \"upcomingEvents\": 1,\n    \"pastEvents\": 2,\n    \"totalInvitationsSent\": 50,\n    \"totalParticipants\": 25,\n    \"recentEvents\": []\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Per-Entrepreneurship – Event Participation",
+      "description": "Métricas de participación de un emprendimiento en eventos. Llamar a event-service.",
+      "item": [
+        {
+          "name": "GET Estadísticas de participación por emprendimiento",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{event_url}}/api/v1/events/stats/participation/entrepreneurship/1",
+              "host": ["{{event_url}}"],
+              "path": ["api", "v1", "events", "stats", "participation", "entrepreneurship", "1"]
+            },
+            "description": "Retorna:\n- totalInvitations: total invitaciones recibidas\n- byStatus: distribución por estado (Pending, Accepted, Rejected)\n- totalParticipations: participaciones confirmadas (como participante)"
+          },
+          "response": [
+            {
+              "name": "Ejemplo de respuesta",
+              "status": "OK",
+              "code": 200,
+              "header": [],
+              "body": "{\n    \"totalInvitations\": 10,\n    \"byStatus\": [],\n    \"totalParticipations\": 5\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

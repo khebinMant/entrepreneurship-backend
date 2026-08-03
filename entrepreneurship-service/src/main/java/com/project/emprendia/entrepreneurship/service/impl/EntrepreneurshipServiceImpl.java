@@ -11,7 +11,9 @@ import com.project.emprendia.entrepreneurship.dto.CatalogueValueResponse;
 import com.project.emprendia.entrepreneurship.dto.EntrepreneurshipLocationResponse;
 import com.project.emprendia.entrepreneurship.dto.EntrepreneurshipRequest;
 import com.project.emprendia.entrepreneurship.dto.EntrepreneurshipResponse;
+import com.project.emprendia.entrepreneurship.dto.EntrepreneurshipStatsResponse;
 import com.project.emprendia.entrepreneurship.dto.EntityPortalResponse;
+import com.project.emprendia.entrepreneurship.dto.GlobalAnalyticsResponse;
 import com.project.emprendia.entrepreneurship.dto.EntitySocialLinkResponse;
 import com.project.emprendia.entrepreneurship.dto.ImageGalleryResponse;
 import com.project.emprendia.entrepreneurship.dto.UserBasicResponse;
@@ -283,6 +285,89 @@ public class EntrepreneurshipServiceImpl implements EntrepreneurshipService {
     /**
      * Enriquecer el response con la imagen logo del emprendimiento (displayOrder = 0)
      */
+    @Override
+    public EntrepreneurshipStatsResponse getStatsByUserId(Long userId) {
+        long total = entrepreneurshipRepository.countByUserId(userId);
+
+        List<EntrepreneurshipStatsResponse.CategoryCount> byCategory =
+            entrepreneurshipRepository.countByCategoryGroupedByUserId(userId).stream()
+                .map(row -> EntrepreneurshipStatsResponse.CategoryCount.builder()
+                    .categoryId((Long) row[0])
+                    .categoryName((String) row[1])
+                    .count((Long) row[2])
+                    .build())
+                .toList();
+
+        EntrepreneurshipStatsResponse.TypeDistribution byType =
+            EntrepreneurshipStatsResponse.TypeDistribution.builder()
+                .physical(entrepreneurshipRepository.countPhysicalOnlyByUserId(userId))
+                .digital(entrepreneurshipRepository.countDigitalOnlyByUserId(userId))
+                .both(entrepreneurshipRepository.countBothByUserId(userId))
+                .build();
+
+        List<EntrepreneurshipResponse> recent = entrepreneurshipRepository
+            .findTop5ByUserIdOrderByCreatedAtDesc(userId).stream()
+            .map(entrepreneurshipMapper::toResponse)
+            .toList();
+        recent.forEach(this::enrichWithLogo);
+        recent.forEach(this::enrichWithRelatedData);
+        recent.forEach(this::enrichWithCreator);
+
+        return EntrepreneurshipStatsResponse.builder()
+            .totalEntrepreneurships(total)
+            .byCategory(byCategory)
+            .byType(byType)
+            .recentEntrepreneurships(recent)
+            .build();
+    }
+
+    @Override
+    public GlobalAnalyticsResponse getGlobalAnalytics() {
+        long total = entrepreneurshipRepository.count();
+
+        List<GlobalAnalyticsResponse.CategoryCount> byCategory =
+            entrepreneurshipRepository.countByCategoryGrouped().stream()
+                .map(row -> GlobalAnalyticsResponse.CategoryCount.builder()
+                    .categoryId((Long) row[0])
+                    .categoryName((String) row[1])
+                    .count((Long) row[2])
+                    .build())
+                .toList();
+
+        GlobalAnalyticsResponse.TypeDistribution byType =
+            GlobalAnalyticsResponse.TypeDistribution.builder()
+                .physical(entrepreneurshipRepository.countPhysicalOnly())
+                .digital(entrepreneurshipRepository.countDigitalOnly())
+                .both(entrepreneurshipRepository.countBoth())
+                .build();
+
+        List<GlobalAnalyticsResponse.MonthlyCount> monthly =
+            entrepreneurshipRepository.countByMonth().stream()
+                .map(row -> GlobalAnalyticsResponse.MonthlyCount.builder()
+                    .year((Integer) row[0])
+                    .month((Integer) row[1])
+                    .count((Long) row[2])
+                    .build())
+                .toList();
+
+        List<EntrepreneurshipResponse> recent = entrepreneurshipRepository
+            .findTop5ByOrderByCreatedAtDesc().stream()
+            .map(entrepreneurshipMapper::toResponse)
+            .toList();
+        recent.forEach(this::enrichWithLogo);
+        recent.forEach(this::enrichWithRelatedData);
+        recent.forEach(this::enrichWithCreator);
+
+        return GlobalAnalyticsResponse.builder()
+            .totalEntrepreneurships(total)
+            .totalCategories(categoryRepository.count())
+            .byCategory(byCategory)
+            .byType(byType)
+            .monthlyActivity(monthly)
+            .recentEntrepreneurships(recent)
+            .build();
+    }
+
     private void enrichWithLogo(EntrepreneurshipResponse response) {
         try {
             List<ImageGalleryResponse> images = sharedServiceClient.getImagesForEntity(

@@ -1,0 +1,56 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: gateway-service
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:4200"
+              - "http://localhost:4201"
+              - "https://emprendia-app.netlify.app"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
+      routes:
+        - id: shared-api
+          uri: ${GATEWAY_HOST_SHARED:http://localhost:8084}
+          predicates:
+            - Path=/api/shared/**
+          filters:
+            - StripPrefix=2
+        - id: shared-files
+          uri: ${GATEWAY_HOST_SHARED:http://localhost:8084}
+          predicates:
+            - Path=/api/files/**
+        - id: user-api
+          uri: ${GATEWAY_HOST_USER:http://localhost:8081}
+          predicates:
+            - Path=/api/user/**
+          filters:
+            - StripPrefix=2
+        - id: entrepreneurship-api
+          uri: ${GATEWAY_HOST_ENTREPRENEURSHIP:http://localhost:8082}
+          predicates:
+            - Path=/api/entrepreneurship/**
+          filters:
+            - StripPrefix=2
+        - id: event-api
+          uri: ${GATEWAY_HOST_EVENT:http://localhost:8083}
+          predicates:
+            - Path=/api/event/**
+          filters:
+            - StripPrefix=2
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
