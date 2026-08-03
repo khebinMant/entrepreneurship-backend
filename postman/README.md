@@ -55,8 +55,9 @@ Gestión completa de imágenes para todas las entidades:
 
 ### 1. Importar Environment
 
-Importa el archivo `Emprendia.postman_environment.json`:
+Importa uno de los dos environments disponibles:
 
+**`Emprendia.postman_environment.json` (Local)** — apunta al **gateway local**:
 ```
 keycloak_url: http://localhost:8080
 keycloak_realm: emprendia
@@ -64,11 +65,24 @@ keycloak_client_id: emprendia-app
 keycloak_username: admin
 keycloak_password: admin
 
-user_url: http://localhost:8081
-entrepreneurship_url: http://localhost:8082
-event_url: http://localhost:8083
-shared_url: http://localhost:8084
+user_url: http://localhost:8090/api/user
+entrepreneurship_url: http://localhost:8090/api/entrepreneurship
+event_url: http://localhost:8090/api/event
+shared_url: http://localhost:8090/api/shared
+gateway_url: http://localhost:8090
 ```
+
+**`Emprendia-Prod.postman_environment.json` (Producción)** — apunta al dominio público (same esquema de rutas):
+```
+keycloak_url: https://emprendia.duckdns.org
+user_url: https://emprendia.duckdns.org/api/user
+entrepreneurship_url: https://emprendia.duckdns.org/api/entrepreneurship
+event_url: https://emprendia.duckdns.org/api/event
+shared_url: https://emprendia.duckdns.org/api/shared
+gateway_url: https://emprendia.duckdns.org
+```
+
+> **Esquema de rutas vía gateway**: todas las peticiones entran por el gateway (`:8090` local / `emprendia.duckdns.org` en prod), que enruta a cada microservicio con el prefijo de servicio. Las URLs de archivos (`/api/files/**`) usan `gateway_url` sin prefijo de servicio.
 
 **IMPORTANTE**: Actualiza `keycloak_username` y `keycloak_password` con tus credenciales reales.
 
@@ -177,8 +191,8 @@ Todas las requests incluyen tests de validación:
 - ✅ Revisa que Keycloak esté corriendo en puerto 8080
 
 ### Error 404 Not Found
-- ✅ Verifica que el microservicio esté ejecutándose
-- ✅ Revisa el puerto en el environment (8081-8084)
+- ✅ Verifica que el gateway esté corriendo (puerto 8090) o el dominio público esté arriba
+- ✅ Revisa que los microservicios estén ejecutándose
 - ✅ Confirma que el ID del recurso exista
 
 ### Error 400 Bad Request en Upload
@@ -244,11 +258,17 @@ URLs públicas directas (NO pasan por la API).
 
 ---
 
-**Versión**: 3.0  
-**Última actualización**: Mayo 8, 2026  
+**Versión**: 4.0  
+**Última actualización**: Agosto 3, 2026  
 **Contacto**: Kevin Guachagmira
 
 ## 🆕 Changelog
+
+### v4.0 (Agosto 3, 2026)
+- ✅ **Todo el tráfico pasa por el gateway**: las colecciones ahora apuntan a `:8090` (local) con el prefijo `/api/<servicio>` (mismo esquema que producción)
+- ✅ Nuevo environment **`Emprendia-Prod`** apuntando a `https://emprendia.duckdns.org`
+- ✅ Nueva variable `{{gateway_url}}` para las rutas de archivos (`/api/files/**`), que no llevan prefijo de servicio
+- ✅ El CORS ahora lo maneja exclusivamente el gateway (los microservicios ya no emiten headers CORS)
 
 ### v3.0 (Mayo 8, 2026)
 - ✅ Nueva colección: **05-Image Management**

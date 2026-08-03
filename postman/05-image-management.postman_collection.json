@@ -858,8 +858,8 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{shared_url}}/api/files/users/1/profile.jpg",
-              "host": ["{{shared_url}}"],
+              "raw": "{{gateway_url}}/api/files/users/1/profile.jpg",
+              "host": ["{{gateway_url}}"],
               "path": ["api", "files", "users", "1", "profile.jpg"]
             },
             "description": "Descarga el archivo de imagen (solo storage local)"
@@ -884,8 +884,8 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{shared_url}}/api/files/entrepreneurships/1/logo.jpg",
-              "host": ["{{shared_url}}"],
+              "raw": "{{gateway_url}}/api/files/entrepreneurships/1/logo.jpg",
+              "host": ["{{gateway_url}}"],
               "path": ["api", "files", "entrepreneurships", "1", "logo.jpg"]
             },
             "description": "Descarga el logo (solo storage local)"
@@ -910,8 +910,8 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{shared_url}}/api/files/events/1/cover.jpg",
-              "host": ["{{shared_url}}"],
+              "raw": "{{gateway_url}}/api/files/events/1/cover.jpg",
+              "host": ["{{gateway_url}}"],
               "path": ["api", "files", "events", "1", "cover.jpg"]
             },
             "description": "Descarga la portada (solo storage local)"

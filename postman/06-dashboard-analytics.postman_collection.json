@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "00000006-dashboard-analytics-0007",
     "name": "06 – Dashboard & Analytics",
-    "description": "Endpoints para las métricas del dashboard.\n\nBase URLs:\n- {{entrepreneurship_url}} = http://localhost:8082\n- {{event_url}} = http://localhost:8083\n- {{user_url}} = http://localhost:8081\n\nTodos requieren JWT válido ({{access_token}}).",
+    "description": "Endpoints para las métricas del dashboard.\n\nBase URLs:\n- {{entrepreneurship_url}} = http://localhost:8090/api/entrepreneurship\n- {{event_url}} = http://localhost:8090/api/event\n- {{user_url}} = http://localhost:8090/api/user\n\nTodos requieren JWT válido ({{access_token}}).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {

@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "00000001-shared-service-emprendia-0002",
     "name": "01 – Shared Service (Puerto 8084)",
-    "description": "Catálogos compartidos de la plataforma Emprendia.\n\nReglas de acceso:\n- GET catalogue-types/** y catalogue-values/** → PÚBLICO (sin token)\n- POST / PUT / DELETE → requiere ROLE_ADMIN\n\nBase URL: {{shared_url}} = http://localhost:8084",
+    "description": "Catálogos compartidos de la plataforma Emprendia.\n\nReglas de acceso:\n- GET catalogue-types/** y catalogue-values/** → PÚBLICO (sin token)\n- POST / PUT / DELETE → requiere ROLE_ADMIN\n\nBase URL: {{shared_url}} = http://localhost:8090/api/shared",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -748,8 +748,8 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{shared_url}}/api/files/users/1/profile.jpg",
-              "host": ["{{shared_url}}"],
+              "raw": "{{gateway_url}}/api/files/users/1/profile.jpg",
+              "host": ["{{gateway_url}}"],
               "path": ["api", "files", "users", "1", "profile.jpg"]
             },
             "description": "Solo funciona en storage.type=local. En prod (Digital Ocean), las URLs son públicas y NO pasan por este endpoint.\n\nEjemplos de rutas:\n- /api/files/users/{userId}/profile.jpg\n- /api/files/users/{userId}/gallery/{fileName}\n- /api/files/entrepreneurships/{id}/logo.jpg\n- /api/files/entrepreneurships/{id}/gallery/{fileName}\n- /api/files/events/{id}/cover.jpg\n- /api/files/events/{id}/gallery/{fileName}"
