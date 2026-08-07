@@ -35,7 +35,8 @@ public class SecurityConfig {
     public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
         http
             .securityMatcher("/actuator/**", "/api/v1/events/**", "/api/v1/event-spaces/**",
-                "/api/v1/event-invitations/**", "/api/v1/event-participants/**")
+                "/api/v1/event-invitations/**", "/api/v1/event-participants/**",
+                "/api/v1/entity-portals/**")
             .cors(cors -> {})
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session ->
