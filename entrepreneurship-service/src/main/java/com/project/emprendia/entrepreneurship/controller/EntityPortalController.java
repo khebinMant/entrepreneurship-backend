@@ -28,6 +28,14 @@ public class EntityPortalController {
         return ResponseEntity.ok(portalService.findByEntityId(entityId));
     }
 
+    @Operation(summary = "Obtener portal por subdominio",
+               description = "Devuelve el portal web de una entidad por su subdominio, usado para acceso con dominio dinámico")
+    @GetMapping("/by-subdomain/{subdomain}")
+    public ResponseEntity<EntityPortalResponse> findBySubdomain(
+            @Parameter(description = "Subdominio del portal") @PathVariable String subdomain) {
+        return ResponseEntity.ok(portalService.findBySubdomain(subdomain));
+    }
+
     @Operation(summary = "Obtener portal por ID")
     @GetMapping("/{id}")
     public ResponseEntity<EntityPortalResponse> findById(

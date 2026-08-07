@@ -22,9 +22,16 @@ public class EntityPortalServiceImpl implements EntityPortalService {
 
     @Override
     public EntityPortalResponse findByEntityId(Long entityId) {
-        return portalRepository.findByEntityId(entityId)
+        return portalRepository.findFirstByEntityIdOrderByPortalIdDesc(entityId)
             .map(this::toResponse)
             .orElseThrow(() -> new ResourceNotFoundException("Portal not found for entity: " + entityId));
+    }
+
+    @Override
+    public EntityPortalResponse findBySubdomain(String subdomain) {
+        return portalRepository.findBySubdomain(subdomain)
+            .map(this::toResponse)
+            .orElseThrow(() -> new ResourceNotFoundException("Portal not found for subdomain: " + subdomain));
     }
 
     @Override
@@ -36,6 +43,21 @@ public class EntityPortalServiceImpl implements EntityPortalService {
     @Override
     @Transactional
     public EntityPortalResponse create(EntityPortalRequest request) {
+        EntityPortal existing = portalRepository.findFirstByEntityIdOrderByPortalIdDesc(request.getEntityId())
+            .orElse(null);
+
+        if (existing != null) {
+            existing.setSubdomain(request.getSubdomain());
+            existing.setThemeId(request.getThemeId());
+            if (request.getIsActive() != null) {
+                existing.setIsActive(request.getIsActive());
+            }
+            if (request.getHtmlContent() != null) {
+                existing.setHtmlContent(request.getHtmlContent());
+            }
+            return toResponse(portalRepository.save(existing));
+        }
+
         if (portalRepository.existsBySubdomain(request.getSubdomain())) {
             throw new DuplicateResourceException("Portal", "subdomain", request.getSubdomain());
         }

@@ -252,7 +252,7 @@ public class EntrepreneurshipServiceImpl implements EntrepreneurshipService {
         }
 
         if (request.getPortal() != null) {
-            EntityPortal portal = entityPortalRepository.findByEntityId(id)
+            EntityPortal portal = entityPortalRepository.findFirstByEntityIdOrderByPortalIdDesc(id)
                 .orElse(EntityPortal.builder().entityId(id).build());
             if (request.getPortal().getSubdomain() != null) {
                 portal.setSubdomain(request.getPortal().getSubdomain());
@@ -427,7 +427,7 @@ public class EntrepreneurshipServiceImpl implements EntrepreneurshipService {
                     .toList()
             );
             response.setPortal(
-                entityPortalRepository.findByEntityId(entityId)
+                entityPortalRepository.findFirstByEntityIdOrderByPortalIdDesc(entityId)
                     .map(p -> EntityPortalResponse.builder()
                         .portalId(p.getPortalId())
                         .entityId(entityId)

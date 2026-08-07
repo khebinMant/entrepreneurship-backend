@@ -9,7 +9,11 @@ import java.util.Optional;
 @Repository
 public interface EntityPortalRepository extends JpaRepository<EntityPortal, Long> {
 
-    Optional<EntityPortal> findByEntityId(Long entityId);
+    Optional<EntityPortal> findFirstByEntityIdOrderByPortalIdDesc(Long entityId);
+
+    Optional<EntityPortal> findBySubdomain(String subdomain);
 
     void deleteByEntityId(Long entityId);
+
+    boolean existsBySubdomain(String subdomain);
 }

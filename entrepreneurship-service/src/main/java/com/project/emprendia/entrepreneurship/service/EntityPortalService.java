@@ -5,6 +5,7 @@ import com.project.emprendia.entrepreneurship.dto.EntityPortalResponse;
 
 public interface EntityPortalService {
     EntityPortalResponse findByEntityId(Long entityId);
+    EntityPortalResponse findBySubdomain(String subdomain);
     EntityPortalResponse findById(Long id);
     EntityPortalResponse create(EntityPortalRequest request);
     EntityPortalResponse update(Long id, EntityPortalRequest request);
